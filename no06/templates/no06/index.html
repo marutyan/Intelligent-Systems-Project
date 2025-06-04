@@ -4,95 +4,61 @@
 <meta charset="UTF-8">
 <title>動画解析 (no06)</title>
 <style>
-:root{
-  --blue:#0b79d0; --red:#c51616; --blue-h:#0962aa;
-  --bg:#f4f7fa;  --card:#fff;
-}
+:root{--blue:#0b79d0;--red:#c51616;--blue-h:#0962aa;--bg:#f4f7fa;--card:#fff;}
 *{box-sizing:border-box;}
 body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);}
-
-/*── ヘッダー ─────────────────────*/
-header{
-  background:var(--blue);color:#fff;padding:12px 1rem;transition:.2s;
-  display:flex;flex-direction:column;gap:.4rem;
-}
+header{background:var(--blue);color:#fff;padding:12px 1rem;transition:.2s;display:flex;flex-direction:column;gap:.4rem;}
 header h1{margin:0;font-size:1.25rem;}
 #nav{display:flex;flex-wrap:wrap;gap:6px;}
-button.nav-btn{
-  border:0;border-radius:4px;background:#fff;color:var(--blue);
-  padding:.45rem .9rem;font-size:.9rem;font-weight:600;cursor:pointer;transition:.15s;
-}
+button.nav-btn{border:0;border-radius:4px;background:#fff;color:var(--blue);padding:.45rem .9rem;font-size:.9rem;font-weight:600;cursor:pointer;transition:.15s;}
 body.extra-mode button.nav-btn{color:var(--red);}
 button.nav-btn:hover{background:var(--blue-h);color:#fff;}
 body.extra-mode button.nav-btn:hover{background:#a80f0f;color:#fff;}
-
-/*── メイン ─────────────────────*/
-main{margin:1rem;padding:1rem;background:var(--card);border-radius:6px;
-     box-shadow:0 2px 6px rgba(0,0,0,.08);min-height:70vh;}
-
+main{margin:1rem;padding:1rem;background:var(--card);border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.08);min-height:70vh;}
 #dist-wrap{display:flex;gap:1rem;flex-wrap:wrap;}
-#left-col, #preview{flex:1 1 0;min-width:300px;min-height:70vh;}
-
-#preview{
-  border:1px solid #ccc;display:flex;align-items:center;justify-content:center;
-}
+#left-col,#preview{flex:1 1 0;min-width:300px;min-height:70vh;}
+#preview{border:1px solid #ccc;display:flex;align-items:center;justify-content:center;}
 #preview img{width:100%;height:100%;object-fit:contain;}
-
 ul.simple-list{list-style:none;padding-left:0;margin:0;}
-ul.simple-list li{padding:.35rem 0;border-bottom:1px solid #e3e7ea;cursor:pointer;}
-
-/*── スライドショー用モーダル ───────────*/
-#modal{
-  display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);
-  align-items:center;justify-content:center;z-index:1000;cursor:zoom-out;
-}
+ul.simple-list li{padding:.35rem 0;border-bottom:1px solid #e3e7ea;display:flex;align-items:center;gap:.5rem;}
+button.play-btn{border:0;background:none;color:var(--blue);font-size:1rem;cursor:pointer;padding:0;margin-left:auto;}
+button.play-btn:hover{color:var(--blue-h);}
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);align-items:center;justify-content:center;z-index:1000;cursor:zoom-out;}
 #modal img{max-width:90vw;max-height:90vh;box-shadow:0 0 10px #000;}
 </style>
 </head>
 <body>
 <header><h1>動画解析 ans0528~</h1><nav id="nav"></nav></header>
 <main id="area"></main>
-
 <div id="modal"></div>
 
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 <script>
-/*── 状態変数 ─*/
 const area=document.getElementById('area');
 const nav =document.getElementById('nav');
 const modal=document.getElementById('modal');
 let slideTimer=null, selectedIds=null, onceMode=false;
 
 /*── ナビ描画 ─*/
-function renderNormal(){
-  nav.innerHTML=`<button class="nav-btn" id="u">動画アップロード</button>
-  <button class="nav-btn" id="g">データ生成</button>
-  <button class="nav-btn" id="m">分布作成</button>
-  <button class="nav-btn" id="s">分布表示</button>
-  <button class="nav-btn" id="f">ファイルリスト</button>
-  <button class="nav-btn" id="x">追加機能</button>`;
-  document.getElementById('u').onclick=()=>load('/upload/');
-  document.getElementById('g').onclick=()=>{onceMode=false;load('/selectVideos/');};
-  document.getElementById('m').onclick=()=>api(selectedIds?`/make_distribution/?video_ids=${selectedIds}`:'/make_distribution/');
-  document.getElementById('s').onclick=()=>show(selectedIds);
-  document.getElementById('f').onclick=()=>load('/showDirectory/');
-  document.getElementById('x').onclick=enterExtra;
-}
-function renderExtra(){
-  nav.innerHTML=`<button class="nav-btn" id="b">通常版に戻る</button>
-  <button class="nav-btn" id="u2">動画アップロード</button>
-  <button class="nav-btn" id="o">ワンクリックモード</button>`;
-  document.getElementById('b').onclick=leaveExtra;
-  document.getElementById('u2').onclick=()=>load('/upload/');
-  document.getElementById('o').onclick=()=>{onceMode=true;load('/selectVideos/');};
-}
+function renderNormal(){nav.innerHTML=`<button class="nav-btn" id="u">動画アップロード</button>
+<button class="nav-btn" id="g">データ生成</button><button class="nav-btn" id="m">分布作成</button>
+<button class="nav-btn" id="s">分布表示</button><button class="nav-btn" id="f">ファイルリスト</button>
+<button class="nav-btn" id="x">追加機能</button>`;
+document.getElementById('u').onclick=()=>load('/upload/');
+document.getElementById('g').onclick=()=>{onceMode=false;load('/selectVideos/');};
+document.getElementById('m').onclick=()=>api(selectedIds?`/make_distribution/?video_ids=${selectedIds}`:'/make_distribution/');
+document.getElementById('s').onclick=()=>show(selectedIds);
+document.getElementById('f').onclick=()=>load('/showDirectory/');
+document.getElementById('x').onclick=enterExtra;}
+function renderExtra(){nav.innerHTML=`<button class="nav-btn" id="b">通常版に戻る</button>
+<button class="nav-btn" id="u2">動画アップロード</button><button class="nav-btn" id="o">ワンクリックモード</button>`;
+document.getElementById('b').onclick=leaveExtra;document.getElementById('u2').onclick=()=>load('/upload/');
+document.getElementById('o').onclick=()=>{onceMode=true;load('/selectVideos/');};}
 renderNormal();
-
-/*── 色切替 ─*/
 function enterExtra(){document.body.classList.add('extra-mode');document.querySelector('header').style.background='var(--red)';renderExtra();}
 function leaveExtra(){document.body.classList.remove('extra-mode');document.querySelector('header').style.background='var(--blue)';renderNormal();}
 
-/*── fetch ヘルパ ─*/
+/*── 汎用 fetch ─*/
 const load=u=>fetch(u).then(r=>r.text()).then(ht=>area.innerHTML=ht);
 const api =(u,o)=>fetch(u,o).then(r=>r.json()).then(j=>{alert(j.message||j.error);return j;});
 
@@ -100,11 +66,10 @@ const api =(u,o)=>fetch(u,o).then(r=>r.json()).then(j=>{alert(j.message||j.error
 function clearSlide(){clearInterval(slideTimer);slideTimer=null;}
 function showImage(path){
   clearSlide();
-  document.getElementById('preview').innerHTML=
-    `<img src="/getImage/?path=${encodeURIComponent(path)}">`;
+  document.getElementById('preview').innerHTML=`<img src="/getImage/?path=${encodeURIComponent(path)}">`;
 }
-function startSlide(vid){
-  fetch(`/getThumbList/?video_id=${vid}`).then(r=>r.json()).then(d=>{
+function startSlide(id){
+  fetch(`/getThumbList/?video_id=${id}`).then(r=>r.json()).then(d=>{
     if(d.error){alert(d.error);return;}
     let idx=0;
     modal.innerHTML='<img>';
@@ -124,22 +89,25 @@ modal.onclick=()=>{modal.style.display='none';clearSlide();};
 function show(ids=null){
   const q=ids?`?video_ids=${ids}`:'';
   fetch(`/showDistribution/${q}`).then(r=>r.json()).then(fig=>{
-    area.innerHTML=`
-      <div id="dist-wrap">
-        <div id="left-col">
-          <h3>使用動画</h3>
-          <ul id="vlist" class="simple-list"></ul>
-          <div id="plot" style="height:70vh"></div>
-        </div>
-        <div id="preview"><p style="opacity:.6;">点をクリックするとサムネイル</p></div>
-      </div>`;
-    /* リスト */
+    area.innerHTML=`<div id="dist-wrap">
+      <div id="left-col">
+        <h3>使用動画</h3><ul id="vlist" class="simple-list"></ul>
+        <div id="plot" style="height:70vh"></div>
+      </div>
+      <div id="preview"><p style="opacity:.6;">点をクリックするとサムネイル</p></div>
+    </div>`;
+    /* リスト生成 */
     const ul=document.getElementById('vlist');
     fig.videos.forEach(v=>{
       const li=document.createElement('li');
-      li.textContent=`[${v.id}] ${v.name}`;li.dataset.id=v.id;ul.appendChild(li);
+      li.innerHTML=`[${v.id}] ${v.name}<button class="play-btn" data-id="${v.id}">▶</button>`;
+      ul.appendChild(li);
     });
-    ul.onclick=e=>{const vid=e.target.dataset.id;if(vid)startSlide(vid);};
+    ul.onclick=e=>{
+      if(e.target.classList.contains('play-btn')){
+        startSlide(e.target.dataset.id);
+      }
+    };
     /* Plot */
     Plotly.newPlot('plot',fig.data,fig.layout);
     document.getElementById('plot').on('plotly_click',ev=>{
@@ -148,24 +116,20 @@ function show(ids=null){
   });
 }
 
-/*── submit 任せ ─*/
+/*── submit ─*/
 area.addEventListener('submit',async e=>{
   if(e.target.id==='upload-form'){
-     e.preventDefault();
-     const fd=new FormData(e.target);
-     await api('/upload/',{method:'POST',body:fd});
-     load('/upload/');return;
-  }
+    e.preventDefault();const fd=new FormData(e.target);
+    await api('/upload/',{method:'POST',body:fd});load('/upload/');return;}
   if(e.target.id==='video-select-form'){
-     e.preventDefault();
-     const ids=[...e.target.querySelectorAll('input[name="video_ids"]:checked')].map(cb=>cb.value);
-     if(!ids.length){alert('動画を選択してください');return;}
-     selectedIds=ids.join(',');
-     if(!onceMode){await api(`/generateData/?video_ids=${selectedIds}`);return;}
-     await api(`/generateData/?video_ids=${selectedIds}`);
-     await api(`/make_distribution/?video_ids=${selectedIds}`);
-     show(ids);onceMode=false;
-  }
+    e.preventDefault();
+    const ids=[...e.target.querySelectorAll('input[name="video_ids"]:checked')].map(cb=>cb.value);
+    if(!ids.length){alert('動画を選択してください');return;}
+    selectedIds=ids.join(',');
+    if(!onceMode){await api(`/generateData/?video_ids=${selectedIds}`);return;}
+    await api(`/generateData/?video_ids=${selectedIds}`);
+    await api(`/make_distribution/?video_ids=${selectedIds}`);
+    show(ids);onceMode=false;}
 });
 </script>
 </body>
