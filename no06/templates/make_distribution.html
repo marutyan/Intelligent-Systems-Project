@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>2D t-SNE + k-means</title>
+</head>
+<body>
+  <h1>2D t-SNE + k-means (5 クラスタ)</h1>
+
+  {% if plot_ready %}
+    <img src="{{ plot_url }}" alt="Clustered Scatter Plot">
+  {% else %}
+    <p>
+      <a href="{% url 'no03:make_distribution' %}">クラスタリングを実行</a>
+    </p>
+  {% endif %}
+</body>
+</html>

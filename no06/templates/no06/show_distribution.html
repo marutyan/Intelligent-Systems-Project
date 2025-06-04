@@ -1,0 +1,31 @@
+<!DOCTYPE html><html lang="ja"><head>
+<meta charset="UTF-8">
+<title>3D Distribution</title>
+<script src="https://cdn.plot.ly/plotly-2.29.1.min.js"></script>
+<style>
+#plot {width:800px;height:600px;}
+#viewer{margin-top:1rem;border:1px solid #ccc;padding:.6rem;}
+#viewer img{max-width:100%;height:auto;}
+</style></head><body>
+<h2>3D Distribution</h2>
+<div id="plot"></div>
+<h3>Clicked frame</h3>
+<div id="viewer"><p>点をクリックしてください</p></div>
+<script>
+const traces = JSON.parse('{{ plot_data_json|escapejs }}');
+Plotly.newPlot('plot', traces, {
+  margin:{l:0,r:0,b:0,t:0},
+  scene:{xaxis:{title:'t-SNE1'},yaxis:{title:'t-SNE2'},zaxis:{title:'t-SNE3'}}
+});
+
+document.getElementById('plot')
+  .on('plotly_click',ev=>{
+    const cd = ev.points?.[0]?.customdata;
+    if(!cd) return;
+    fetch(`/getImage/?video_name=${encodeURIComponent(cd[0])}&timestamp=${cd[1]}`)
+      .then(r=>r.json()).then(d=>{
+        document.getElementById('viewer').innerHTML =
+          d.image ? `<img src="${d.image}">` : `<p>${d.error}</p>`;
+      });
+});
+</script></body></html>

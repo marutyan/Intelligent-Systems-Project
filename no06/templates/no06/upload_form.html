@@ -1,0 +1,53 @@
+<form id="upload-form" action="/upload/" method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <p><label>タイトル:</label>
+     <input type="text" name="name" maxlength="255" placeholder="例: movie1.mp4"></p>
+
+  <p><label>動画ファイル:</label>
+     <input type="file" name="video_file" accept="video/*" required></p>
+
+  <button type="submit">アップロード</button>
+</form>
+
+<hr>
+
+<h3>アップロード済み動画一覧</h3>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th><th>タイトル</th><th>ファイル</th><th>アップロード日時</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for v in videos %}
+    <tr>
+      <td>{{ v.id }}</td>
+      <td>{{ v.name }}</td>
+      <td>
+        <!-- ★ ここを getVideo に -->
+        <a href="/getVideo/?path={{ v.file }}">{{ v.file|cut:'no06/media/videos/' }}</a>
+      </td>
+      <td>{{ v.uploaded|date:"Y-m-d H:i:s" }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">まだ動画はありません。</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+document.getElementById('upload-form').onsubmit = async (e)=>{
+  e.preventDefault();
+  const fd=new FormData(e.target);
+  const res=await fetch('/upload/',{
+    method:'POST',
+    body:fd,
+    headers:{'X-Requested-With':'XMLHttpRequest'}
+  });
+  const j=await res.json();
+  alert(j.message||j.error);
+  fetch('/upload/').then(r=>r.text()).then(html=>{
+      document.getElementById('content-area').innerHTML=html;
+  });
+};
+</script>
