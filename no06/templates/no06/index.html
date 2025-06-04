@@ -10,183 +10,161 @@
 }
 *{box-sizing:border-box;}
 body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);}
-header{background:var(--blue);color:#fff;padding:12px 1rem;transition:.2s;}
+
+/*── ヘッダー ─────────────────────*/
+header{
+  background:var(--blue);color:#fff;padding:12px 1rem;transition:.2s;
+  display:flex;flex-direction:column;gap:.4rem;
+}
 header h1{margin:0;font-size:1.25rem;}
-nav{margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;}
+#nav{display:flex;flex-wrap:wrap;gap:6px;}
 button.nav-btn{
   border:0;border-radius:4px;background:#fff;color:var(--blue);
-  padding:.45rem .9rem;font-size:.9rem;font-weight:600;
-  cursor:pointer;transition:.15s;
+  padding:.45rem .9rem;font-size:.9rem;font-weight:600;cursor:pointer;transition:.15s;
 }
 body.extra-mode button.nav-btn{color:var(--red);}
 button.nav-btn:hover{background:var(--blue-h);color:#fff;}
-body.extra-mode button.nav-btn:hover{background:#a80f0f;}
-main{
-  max-width:1024px;margin:1.5rem auto;padding:1rem;background:var(--card);
-  border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.08);min-height:60vh;
+body.extra-mode button.nav-btn:hover{background:#a80f0f;color:#fff;}
+
+/*── メイン ─────────────────────*/
+main{margin:1rem;padding:1rem;background:var(--card);border-radius:6px;
+     box-shadow:0 2px 6px rgba(0,0,0,.08);min-height:70vh;}
+
+#dist-wrap{display:flex;gap:1rem;flex-wrap:wrap;}
+#left-col, #preview{flex:1 1 0;min-width:300px;min-height:70vh;}
+
+#preview{
+  border:1px solid #ccc;display:flex;align-items:center;justify-content:center;
 }
-#thumb-modal{
+#preview img{width:100%;height:100%;object-fit:contain;}
+
+ul.simple-list{list-style:none;padding-left:0;margin:0;}
+ul.simple-list li{padding:.35rem 0;border-bottom:1px solid #e3e7ea;cursor:pointer;}
+
+/*── スライドショー用モーダル ───────────*/
+#modal{
   display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);
   align-items:center;justify-content:center;z-index:1000;cursor:zoom-out;
 }
-#thumb-modal img{max-width:90vw;max-height:90vh;box-shadow:0 0 10px #000;}
-ul.simple-list{list-style:none;padding-left:0;}
-ul.simple-list li{padding:.3rem 0;border-bottom:1px solid #e3e7ea;}
-table{border-collapse:collapse;font-size:.9rem;}
-table th,table td{border:1px solid #ccc;padding:.3rem .5rem;}
-table thead{background:#f0f4f7;}
+#modal img{max-width:90vw;max-height:90vh;box-shadow:0 0 10px #000;}
 </style>
 </head>
 <body>
-<header>
-  <h1>動画解析 ans0528~</h1>
-  <nav id="nav-bar"></nav>
-</header>
+<header><h1>動画解析 ans0528~</h1><nav id="nav"></nav></header>
+<main id="area"></main>
 
-<main id="content-area"></main>
-
-<!-- サムネイルモーダル -->
-<div id="thumb-modal" onclick="this.style.display='none'">
-  <img id="thumb-img" src="" alt="thumbnail">
-</div>
+<div id="modal"></div>
 
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 <script>
-/* ---------- 共通変数 ---------- */
-const area      = document.getElementById('content-area');
-const navBar    = document.getElementById('nav-bar');
-const headerBar = document.querySelector('header');
-let selectedIds = null;          // データ生成で選択した動画 ID 配列
-let onceMode    = false;         // ワンクリックモード実行フラグ
+/*── 状態変数 ─*/
+const area=document.getElementById('area');
+const nav =document.getElementById('nav');
+const modal=document.getElementById('modal');
+let slideTimer=null, selectedIds=null, onceMode=false;
 
-/* ---------- ナビ描画 ---------- */
-function renderNormalNav(){
-  navBar.innerHTML = `
-    <button class="nav-btn" id="btn-upload">動画アップロード</button>
-    <button class="nav-btn" id="btn-gen">データ生成</button>
-    <button class="nav-btn" id="btn-make">分布作成</button>
-    <button class="nav-btn" id="btn-show">分布表示</button>
-    <button class="nav-btn" id="btn-files">ファイルリスト</button>
-    <button class="nav-btn" id="btn-extra">追加機能</button>
-  `;
-  attachNormalHandlers();
+/*── ナビ描画 ─*/
+function renderNormal(){
+  nav.innerHTML=`<button class="nav-btn" id="u">動画アップロード</button>
+  <button class="nav-btn" id="g">データ生成</button>
+  <button class="nav-btn" id="m">分布作成</button>
+  <button class="nav-btn" id="s">分布表示</button>
+  <button class="nav-btn" id="f">ファイルリスト</button>
+  <button class="nav-btn" id="x">追加機能</button>`;
+  document.getElementById('u').onclick=()=>load('/upload/');
+  document.getElementById('g').onclick=()=>{onceMode=false;load('/selectVideos/');};
+  document.getElementById('m').onclick=()=>api(selectedIds?`/make_distribution/?video_ids=${selectedIds}`:'/make_distribution/');
+  document.getElementById('s').onclick=()=>show(selectedIds);
+  document.getElementById('f').onclick=()=>load('/showDirectory/');
+  document.getElementById('x').onclick=enterExtra;
 }
-function renderExtraNav(){
-  navBar.innerHTML = `
-    <button class="nav-btn" id="btn-back">通常版に戻る</button>
-    <button class="nav-btn" id="btn-upload2">動画アップロード</button>
-    <button class="nav-btn" id="btn-once">ワンクリックモード</button>
-  `;
-  document.getElementById('btn-back').onclick   = leaveExtraMode;
-  document.getElementById('btn-upload2').onclick= ()=>loadHTML('/upload/');
-  document.getElementById('btn-once').onclick   = ()=>{
-      onceMode=true;
-      loadHTML('/selectVideos/');
-  };
+function renderExtra(){
+  nav.innerHTML=`<button class="nav-btn" id="b">通常版に戻る</button>
+  <button class="nav-btn" id="u2">動画アップロード</button>
+  <button class="nav-btn" id="o">ワンクリックモード</button>`;
+  document.getElementById('b').onclick=leaveExtra;
+  document.getElementById('u2').onclick=()=>load('/upload/');
+  document.getElementById('o').onclick=()=>{onceMode=true;load('/selectVideos/');};
 }
+renderNormal();
 
-/* ---------- 通常モードのハンドラ ---------- */
-function attachNormalHandlers(){
-  document.getElementById('btn-upload').onclick = ()=>loadHTML('/upload/');
-  document.getElementById('btn-gen'   ).onclick = ()=>{onceMode=false;loadHTML('/selectVideos/');};
-  document.getElementById('btn-make'  ).onclick = ()=>{
-      const url=selectedIds?`/make_distribution/?video_ids=${selectedIds.join(',')}`:'/make_distribution/';
-      api(url);
-  };
-  document.getElementById('btn-show'  ).onclick = ()=>{
-      selectedIds?showDistribution(selectedIds):showDistribution();
-  };
-  document.getElementById('btn-files' ).onclick = ()=>loadHTML('/showDirectory/');
-  document.getElementById('btn-extra' ).onclick = enterExtraMode;
+/*── 色切替 ─*/
+function enterExtra(){document.body.classList.add('extra-mode');document.querySelector('header').style.background='var(--red)';renderExtra();}
+function leaveExtra(){document.body.classList.remove('extra-mode');document.querySelector('header').style.background='var(--blue)';renderNormal();}
+
+/*── fetch ヘルパ ─*/
+const load=u=>fetch(u).then(r=>r.text()).then(ht=>area.innerHTML=ht);
+const api =(u,o)=>fetch(u,o).then(r=>r.json()).then(j=>{alert(j.message||j.error);return j;});
+
+/*── プレビュー制御 ─*/
+function clearSlide(){clearInterval(slideTimer);slideTimer=null;}
+function showImage(path){
+  clearSlide();
+  document.getElementById('preview').innerHTML=
+    `<img src="/getImage/?path=${encodeURIComponent(path)}">`;
 }
-
-/* ---------- モード切替 ---------- */
-function enterExtraMode(){
-  document.body.classList.add('extra-mode');
-  headerBar.style.background='var(--red)';
-  renderExtraNav();
+function startSlide(vid){
+  fetch(`/getThumbList/?video_id=${vid}`).then(r=>r.json()).then(d=>{
+    if(d.error){alert(d.error);return;}
+    let idx=0;
+    modal.innerHTML='<img>';
+    const img=modal.querySelector('img');
+    img.src=`/getImage/?path=${encodeURIComponent(d.thumbs[0])}`;
+    modal.style.display='flex';
+    clearSlide();
+    slideTimer=setInterval(()=>{
+      idx=(idx+1)%d.thumbs.length;
+      img.src=`/getImage/?path=${encodeURIComponent(d.thumbs[idx])}`;
+    },1000);
+  });
 }
-function leaveExtraMode(){
-  document.body.classList.remove('extra-mode');
-  headerBar.style.background='var(--blue)';
-  renderNormalNav();
-}
+modal.onclick=()=>{modal.style.display='none';clearSlide();};
 
-/* ---------- 初期化 ---------- */
-renderNormalNav();
-
-/* ---------- 汎用 Ajax ---------- */
-function loadHTML(url){ fetch(url).then(r=>r.text()).then(html=>area.innerHTML=html); }
-function api(url){ return fetch(url).then(r=>r.json()); }
-
-/* ---------- 分布表示 ---------- */
-function showDistribution(ids=null){
-  const q=ids?`?video_ids=${ids.join(',')}`:'';
+/*── 分布表示 ─*/
+function show(ids=null){
+  const q=ids?`?video_ids=${ids}`:'';
   fetch(`/showDistribution/${q}`).then(r=>r.json()).then(fig=>{
-     area.innerHTML=
-       '<h3>使用動画</h3><ul id="vid-list" class="simple-list"></ul>'
-     + '<div id="plot" style="height:80vh"></div>';
-
-     const ul=document.getElementById('vid-list');
-     fig.videos.forEach(v=>{
-       const li=document.createElement('li');
-       li.textContent=`[${v.id}] ${v.name}`;
-       ul.appendChild(li);
-     });
-     Plotly.newPlot('plot',fig.data,fig.layout);
-     document.getElementById('plot').on('plotly_click',onPointClick);
+    area.innerHTML=`
+      <div id="dist-wrap">
+        <div id="left-col">
+          <h3>使用動画</h3>
+          <ul id="vlist" class="simple-list"></ul>
+          <div id="plot" style="height:70vh"></div>
+        </div>
+        <div id="preview"><p style="opacity:.6;">点をクリックするとサムネイル</p></div>
+      </div>`;
+    /* リスト */
+    const ul=document.getElementById('vlist');
+    fig.videos.forEach(v=>{
+      const li=document.createElement('li');
+      li.textContent=`[${v.id}] ${v.name}`;li.dataset.id=v.id;ul.appendChild(li);
+    });
+    ul.onclick=e=>{const vid=e.target.dataset.id;if(vid)startSlide(vid);};
+    /* Plot */
+    Plotly.newPlot('plot',fig.data,fig.layout);
+    document.getElementById('plot').on('plotly_click',ev=>{
+      const [,,thumb]=ev.points[0].customdata;showImage(thumb);
+    });
   });
 }
 
-/* ---------- サムネイル ---------- */
-function onPointClick(ev){
-  const [,,thumb]=ev.points[0].customdata;
-  fetch(`/getImage/?path=${encodeURIComponent(thumb)}`)
-    .then(r=>{if(!r.ok)throw 0;return r.blob();})
-    .then(b=>{
-      const img=document.getElementById('thumb-img');
-      img.src=URL.createObjectURL(b);
-      document.getElementById('thumb-modal').style.display='flex';
-    })
-    .catch(()=>alert('サムネイル取得失敗'));
-}
-
-/* ---------- submit 委譲 ---------- */
+/*── submit 任せ ─*/
 area.addEventListener('submit',async e=>{
-  /* --- 動画アップロード --- */
   if(e.target.id==='upload-form'){
-      e.preventDefault();
-      const fd=new FormData(e.target);
-      const j=await api('/upload/', {method:'POST',body:fd});
-      alert(j.message||j.error);
-      loadHTML('/upload/'); return;
+     e.preventDefault();
+     const fd=new FormData(e.target);
+     await api('/upload/',{method:'POST',body:fd});
+     load('/upload/');return;
   }
-  /* --- 動画選択フォーム --- */
   if(e.target.id==='video-select-form'){
-      e.preventDefault();
-      const ids=[...e.target.querySelectorAll('input[name="video_ids"]:checked')]
-                .map(cb=>cb.value);
-      if(ids.length===0){alert('動画を選択してください');return;}
-      selectedIds=ids;   // 記憶
-
-      if(!onceMode){  /* 通常データ生成 */
-          const j=await api(`/generateData/?video_ids=${ids.join(',')}`);
-          alert(j.message||j.error);
-          return;
-      }
-      /* ------------- ワンクリックモード ------------- */
-      try{
-        let j=await api(`/generateData/?video_ids=${ids.join(',')}`);
-        if(j.error) throw j.error;
-        j=await api(`/make_distribution/?video_ids=${ids.join(',')}`);
-        if(j.error) throw j.error;
-        showDistribution(ids);          // 最後に表示
-      }catch(err){
-        alert('エラー: '+err);
-      }finally{
-        onceMode=false;                 // 1 回限り
-      }
-      return;
+     e.preventDefault();
+     const ids=[...e.target.querySelectorAll('input[name="video_ids"]:checked')].map(cb=>cb.value);
+     if(!ids.length){alert('動画を選択してください');return;}
+     selectedIds=ids.join(',');
+     if(!onceMode){await api(`/generateData/?video_ids=${selectedIds}`);return;}
+     await api(`/generateData/?video_ids=${selectedIds}`);
+     await api(`/make_distribution/?video_ids=${selectedIds}`);
+     show(ids);onceMode=false;
   }
 });
 </script>
