@@ -12,9 +12,9 @@ urlpatterns = [
     path('getVideo/',          views.get_video,         name='get_video'),
     path('getThumbList/',      views.get_thumb_list,    name='get_thumb_list'),
 
-    # ★ 新規
-    path('selectPose/',        views.select_pose,       name='select_pose'),
-    path('poseEstimate/',      views.pose_estimate,     name='pose_estimate'),
+    # --- BBox detection ---
+    path('selectDetect/',      views.select_detect,     name='select_detect'),
+    path('bboxDetect/',        views.bbox_detect,       name='bbox_detect'),
 
     path('showDirectory/',     views.show_directory,    name='show_directory'),
 ]
