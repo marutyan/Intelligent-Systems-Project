@@ -105,27 +105,28 @@ renderNormal();
 function enterExtra(){document.body.classList.add('extra-mode');document.querySelector('header').style.background='var(--grad-red)';renderExtra();}
 function leaveExtra(){document.body.classList.remove('extra-mode');document.querySelector('header').style.background='var(--grad-blue)';renderNormal();}
 
-/*── fetch helpers ─*/
+/*── load helper ─*/
 const load=u=>fetch(u).then(r=>r.text()).then(html=>{
   area.innerHTML=html;
-  /* ★ 選択画面ロード時に Ajax ハンドラ付与 */
   if(u.startsWith('/selectDetect/')) attachDetectHandler();
 });
-const api=(u,o)=>fetch(u,o).then(r=>r.json());
 
-/*── BBox Ajax handler ─*/
+/*── detect handler – 変更箇所★ ─*/
 function attachDetectHandler(){
   const form=document.getElementById('detect-select-form');
   if(!form) return;
-  form.onsubmit=async e=>{
+  form.onsubmit = async e=>{
     e.preventDefault();
-    const id=e.target.querySelector('input[name="video_id"]:checked')?.value;
+    const id = e.target.querySelector('input[name="video_id"]:checked')?.value;
     if(!id){alert('Select a video');return;}
-    const j=await api(`/bboxDetect/?video_id=${id}`);
+
+    const j = await api(`/bboxDetect/?video_id=${id}`);
     if(j.error){alert(j.error);return;}
-    document.getElementById('detect-result').innerHTML=
+
+    /* ★ ストリーミング URL を <video> に設定 */
+    document.getElementById('detect-result').innerHTML =
       `<video controls autoplay style="max-width:100%;border:1px solid #ccc;border-radius:8px;">
-         <source src="${j.video_url}" type="video/mp4">
+         <source src="/getDetVideo/?video_id=${id}" type="video/mp4">
        </video>`;
   };
 }
