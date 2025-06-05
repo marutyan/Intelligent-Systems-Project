@@ -2,9 +2,9 @@ import os, json, cv2
 from pathlib import Path
 from datetime import datetime
 
-from django.conf                  import settings
-from django.shortcuts             import render
-from django.http                  import JsonResponse, FileResponse, HttpResponse
+from django.conf  import settings
+from django.shortcuts import render
+from django.http  import JsonResponse, FileResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 
@@ -22,7 +22,8 @@ pose_model = YOLO('yolov8n-pose.pt')
 APP_DIR = settings.BASE_DIR / settings.APP_NAME
 VID_DIR = APP_DIR / 'media' / 'videos'
 ORI_DIR = APP_DIR / 'media' / 'originals'
-for d in (VID_DIR, ORI_DIR): d.mkdir(parents=True, exist_ok=True)
+POSE_DIR= APP_DIR / 'media' / 'pose'          # ★ 新ディレクトリ
+for d in (VID_DIR, ORI_DIR, POSE_DIR): d.mkdir(parents=True, exist_ok=True)
 
 
 # =========================================================
@@ -296,3 +297,46 @@ def get_thumb_list(request):
 
     rel_paths = [str(p.relative_to(settings.BASE_DIR)) for p in frames]
     return JsonResponse({'thumbs': rel_paths})
+
+# ---------------------------------------------------------
+@require_http_methods(['GET'])
+def select_pose(request):                       # ★ 新ビュー (選択画面)
+    vids = Video.objects.order_by('-uploaded')
+    return render(request, 'no06/select_pose.html', {'videos': vids})
+
+# ---------------------------------------------------------
+@require_http_methods(['GET'])
+def pose_estimate(request):                     # ★ 新ビュー (処理本体)
+    try:
+        vid_id = int(request.GET.get('video_id',''))
+    except (TypeError, ValueError):
+        return JsonResponse({'error':'invalid id'}, status=400)
+
+    try:
+        video = Video.objects.get(id=vid_id)
+    except Video.DoesNotExist:
+        return JsonResponse({'error':'not found'}, status=404)
+
+    src_path = settings.BASE_DIR / video.file
+    out_path = POSE_DIR / f'{vid_id}_pose.mp4'
+
+    if not out_path.exists():                   # 既にあれば再利用
+        cap = cv2.VideoCapture(str(src_path))
+        if not cap.isOpened():
+            return JsonResponse({'error':'cannot open video'}, status=500)
+
+        fourcc=cv2.VideoWriter_fourcc(*'mp4v')
+        w=int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        h=int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps=cap.get(cv2.CAP_PROP_FPS) or 30
+        vw=cv2.VideoWriter(str(out_path), fourcc, fps, (w,h))
+
+        while True:
+            ok, frame = cap.read()
+            if not ok: break
+            res = pose_model(frame, verbose=False)[0]
+            vw.write(res.plot())                # Skeleton 描画フレーム
+        cap.release(); vw.release()
+
+    video_url = settings.MEDIA_URL + f'pose/{out_path.name}'
+    return JsonResponse({'video_url': video_url})
