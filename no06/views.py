@@ -1,4 +1,4 @@
-import os, json, cv2
+import os, cv2
 from pathlib import Path
 from datetime import datetime
 
@@ -17,13 +17,15 @@ from sklearn.cluster  import KMeans
 import plotly.graph_objects as go
 import plotly.colors        as pc
 
-pose_model = YOLO('yolov8n-pose.pt')
+# -------- models ---------
+pose_model = YOLO('yolov8n-pose.pt')   # 既存
+detect_model = YOLO('yolov8n.pt')      # ★ BBox 用
 
-APP_DIR = settings.BASE_DIR / settings.APP_NAME
-VID_DIR = APP_DIR / 'media' / 'videos'
-ORI_DIR = APP_DIR / 'media' / 'originals'
-POSE_DIR= APP_DIR / 'media' / 'pose'          # ★ 新ディレクトリ
-for d in (VID_DIR, ORI_DIR, POSE_DIR): d.mkdir(parents=True, exist_ok=True)
+APP_DIR  = settings.BASE_DIR / settings.APP_NAME
+VID_DIR  = APP_DIR / 'media' / 'videos'
+POSE_DIR = APP_DIR / 'media' / 'pose'
+DET_DIR  = APP_DIR / 'media' / 'detect'   # ★ 新
+for d in (VID_DIR, POSE_DIR, DET_DIR): d.mkdir(parents=True, exist_ok=True)
 
 
 # =========================================================
@@ -298,15 +300,20 @@ def get_thumb_list(request):
     rel_paths = [str(p.relative_to(settings.BASE_DIR)) for p in frames]
     return JsonResponse({'thumbs': rel_paths})
 
-# ---------------------------------------------------------
+# ========= BBox detection UI =========
 @require_http_methods(['GET'])
-def select_pose(request):                       # ★ 新ビュー (選択画面)
+def select_detect(request):
     vids = Video.objects.order_by('-uploaded')
-    return render(request, 'no06/select_pose.html', {'videos': vids})
+    return render(request, 'no06/select_detect.html', {'videos': vids})
 
-# ---------------------------------------------------------
+
+# ========= Detection processing =========
 @require_http_methods(['GET'])
-def pose_estimate(request):                     # ★ 新ビュー (処理本体)
+def bbox_detect(request):
+    """
+    ?video_id=<id> → YOLO8 detection + BBox 描画動画を生成して返す
+    キャッシュあり
+    """
     try:
         vid_id = int(request.GET.get('video_id',''))
     except (TypeError, ValueError):
@@ -318,25 +325,24 @@ def pose_estimate(request):                     # ★ 新ビュー (処理本体
         return JsonResponse({'error':'not found'}, status=404)
 
     src_path = settings.BASE_DIR / video.file
-    out_path = POSE_DIR / f'{vid_id}_pose.mp4'
+    out_path = DET_DIR / f'{vid_id}_det.mp4'
 
-    if not out_path.exists():                   # 既にあれば再利用
+    if not out_path.exists():
         cap = cv2.VideoCapture(str(src_path))
         if not cap.isOpened():
-            return JsonResponse({'error':'cannot open video'}, status=500)
+            return JsonResponse({'error':'cannot open'}, status=500)
 
-        fourcc=cv2.VideoWriter_fourcc(*'mp4v')
-        w=int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        h=int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        fps=cap.get(cv2.CAP_PROP_FPS) or 30
-        vw=cv2.VideoWriter(str(out_path), fourcc, fps, (w,h))
+        w  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        h  = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps= cap.get(cv2.CAP_PROP_FPS) or 30
+        vw = cv2.VideoWriter(str(out_path), cv2.VideoWriter_fourcc(*'mp4v'), fps, (w,h))
 
         while True:
             ok, frame = cap.read()
             if not ok: break
-            res = pose_model(frame, verbose=False)[0]
-            vw.write(res.plot())                # Skeleton 描画フレーム
+            res = detect_model(frame, verbose=False)[0]
+            vw.write(res.plot())
         cap.release(); vw.release()
 
-    video_url = settings.MEDIA_URL + f'pose/{out_path.name}'
+    video_url = settings.MEDIA_URL + f'detect/{out_path.name}'
     return JsonResponse({'video_url': video_url})
