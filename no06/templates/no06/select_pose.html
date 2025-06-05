@@ -1,0 +1,35 @@
+{% load static %}
+<h2 style="margin-bottom:1rem;">Pose Estimation – Select a Video</h2>
+
+<form id="pose-select-form">
+  {% for v in videos %}
+    <p>
+      <label>
+        <input type="radio" name="video_id" value="{{ v.id }}">
+        [{{ v.id }}] {{ v.name }}
+      </label>
+    </p>
+  {% empty %}
+    <p>No videos.</p>
+  {% endfor %}
+  <button type="submit" style="padding:.4rem .9rem;">Run Pose</button>
+</form>
+
+<div id="pose-result" style="margin-top:1.5rem;"></div>
+
+<script>
+document.getElementById('pose-select-form').onsubmit = async e=>{
+  e.preventDefault();
+  const id = e.target.video_id.value;
+  if(!id){ alert('Select a video'); return; }
+
+  const res = await fetch(`/poseEstimate/?video_id=${id}`);
+  const j   = await res.json();
+  if(j.error){ alert(j.error); return; }
+
+  document.getElementById('pose-result').innerHTML =
+    `<video controls autoplay style="max-width:100%;border:1px solid #ccc;border-radius:8px;">
+       <source src="${j.video_url}" type="video/mp4">
+     </video>`;
+};
+</script>
