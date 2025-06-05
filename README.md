@@ -64,4 +64,4 @@ python manage.py runserver
 
 3. Cluster → Show to explore the 3-D distribution
 
-4. Click a point to inspect its frame, or hit ▶ to replay the full 1 fps stream
+4. Click a point to inspect its frame, or hit ▶ to replay the full one fps stream
