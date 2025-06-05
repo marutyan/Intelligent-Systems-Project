@@ -3,124 +3,56 @@
 <head>
 <meta charset="UTF-8">
 <title>Video Analytics (no06)</title>
-
-<!-- Fonts / Icons -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css" rel="stylesheet">
-
 <style>
+/* 先ほどの“拡大 UI 版” と同一。長いため省略せず貼付してください */
 :root{
-  /* colors */
   --blue:#0b7ad2; --blue-dark:#075aa3;
   --red:#d43c3c;  --red-dark:#ac2121;
   --bg:#f6f9fc;   --card:#fff;
-
-  /* metrics */
-  --radius:14px;
-  --shadow:0 6px 20px rgba(0,0,0,.08);
-
-  /* gradients */
+  --radius:14px;  --shadow:0 6px 20px rgba(0,0,0,.08);
   --grad-blue:linear-gradient(135deg,#0b7ad2 0%,#4fa3ff 100%);
   --grad-red :linear-gradient(135deg,#d9492c 0%,#ff8a66 100%);
-
-  /* base font */
-  font-size:18px;      /* ★ 全体 12.5% アップ */
+  font-size:18px;
 }
 *{box-sizing:border-box;margin:0;}
 html,body{height:100%;font-family:"Inter",system-ui,sans-serif;background:var(--bg);}
 body{display:flex;flex-direction:column;}
-
-/* ── Header ────────────────────────────────── */
-header{
-  flex:0 0 auto;
-  background:var(--grad-blue);color:#fff;
-  padding:1.4rem 1.7rem 1.2rem;          /* ★ 高さ拡大 */
-  display:flex;flex-direction:column;gap:.65rem;
-  box-shadow:var(--shadow);transition:.3s;
-}
+header{flex:0 0 auto;background:var(--grad-blue);color:#fff;padding:1.4rem 1.7rem 1.2rem;
+  display:flex;flex-direction:column;gap:.65rem;box-shadow:var(--shadow);transition:.3s;}
 body.extra-mode header{background:var(--grad-red);}
 header h1{font-size:1.55rem;font-weight:600;}
 #nav{display:flex;flex-wrap:wrap;gap:.7rem;}
-button.nav-btn{
-  border:none;border-radius:var(--radius);
-  padding:.7rem 1.35rem;                /* ★ 大きめ */
-  font-size:.96rem;font-weight:500;     /* ★ 大きめ */
-  display:flex;align-items:center;gap:.45rem;
-  background:#fff;color:var(--blue);
-  box-shadow:0 3px 8px rgba(0,0,0,.06);
-  cursor:pointer;transition:.18s;
-}
+button.nav-btn{border:none;border-radius:var(--radius);padding:.7rem 1.35rem;font-size:.96rem;
+  font-weight:500;display:flex;align-items:center;gap:.45rem;background:#fff;color:var(--blue);
+  box-shadow:0 3px 8px rgba(0,0,0,.06);cursor:pointer;transition:.18s;}
 body.extra-mode button.nav-btn{color:var(--red);}
 button.nav-btn:hover{transform:translateY(-3px);box-shadow:0 8px 16px rgba(0,0,0,.12);}
 body.extra-mode button.nav-btn:hover{color:var(--red-dark);}
-
-/* ── Main ───────────────────────────────────── */
-main{
-  flex:1 1 auto;
-  margin:1.2rem;
-  padding:1.7rem;
-  background:var(--card);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  display:flex;flex-direction:column;
-  overflow:auto;
-  font-size:.94rem;                     /* ★ テキストサイズ少しアップ */
-}
-
-/* ── Distribution Layout ───────────────────── */
+main{flex:1 1 auto;margin:1.2rem;padding:1.7rem;background:var(--card);border-radius:var(--radius);
+  box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:auto;font-size:.94rem;}
 #dist-wrap{flex:1 1 auto;display:flex;gap:1.5rem;flex-wrap:wrap;height:100%;}
 #left-col,#preview{flex:1 1 0;min-width:380px;display:flex;flex-direction:column;min-height:0;}
 #left-col h3{margin-bottom:.9rem;font-size:1.1rem;font-weight:600;color:#333;}
 #plot{flex:1 1 auto;min-height:60vh;}
-
-#preview{
-  border:1px solid #e0e6f0;border-radius:var(--radius);
-  background:#f0f6ff;
-  display:flex;align-items:center;justify-content:center;
-  min-height:60vh;cursor:pointer;position:relative;overflow:hidden;
-}
+#preview{border:1px solid #e0e6f0;border-radius:var(--radius);background:#f0f6ff;display:flex;
+  align-items:center;justify-content:center;min-height:60vh;cursor:pointer;position:relative;}
 #preview img{width:100%;height:100%;object-fit:contain;animation:fadeIn .4s ease;}
-#preview::after{
-  content:"Click to play";
-  position:absolute;bottom:.75rem;right:1rem;
-  font-size:.85rem;color:#444;background:rgba(255,255,255,.88);
-  padding:.14rem .6rem;border-radius:8px;
-  box-shadow:0 1px 4px rgba(0,0,0,.08);
-}
-
-/* ── Video List ─────────────────────────────── */
-ul.simple-list{
-  list-style:none;padding:0;margin:0;
-  border:1px solid #e0e6f0;border-radius:var(--radius);overflow:hidden;
-}
-ul.simple-list li{
-  display:flex;align-items:center;gap:.6rem;
-  padding:.65rem 1rem;
-  font-size:.9rem;
-  background:#fff;
-  border-bottom:1px solid #e9edf3;
-  cursor:pointer;
-}
+#preview::after{content:"Click to play";position:absolute;bottom:.75rem;right:1rem;
+  font-size:.85rem;color:#444;background:rgba(255,255,255,.88);padding:.14rem .6rem;border-radius:8px;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);}
+ul.simple-list{list-style:none;padding:0;margin:0;border:1px solid #e0e6f0;border-radius:var(--radius);overflow:hidden;}
+ul.simple-list li{display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;font-size:.9rem;background:#fff;border-bottom:1px solid #e9edf3;cursor:pointer;}
 ul.simple-list li:last-child{border-bottom:none;}
 ul.simple-list li:hover{background:#eef3fc;}
-button.play-btn{
-  margin-left:auto;border:none;background:none;
-  font-size:1.15rem;color:var(--blue);cursor:pointer;transition:.15s;
-}
+button.play-btn{margin-left:auto;border:none;background:none;font-size:1.15rem;color:var(--blue);cursor:pointer;transition:.15s;}
 body.extra-mode button.play-btn{color:var(--red);}
 button.play-btn:hover{color:var(--blue-dark);}
 body.extra-mode button.play-btn:hover{color:var(--red-dark);}
-
-/* ── Modal ─────────────────────────────────── */
-#modal{
-  display:none;position:fixed;inset:0;background:rgba(0,0,0,.63);
-  backdrop-filter:blur(3px);align-items:center;justify-content:center;
-  cursor:zoom-out;z-index:1000;
-}
-#modal img{
-  max-width:94vw;max-height:94vh;border-radius:var(--radius);
-  box-shadow:0 8px 28px rgba(0,0,0,.55);animation:fadeIn .4s ease;
-}
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.63);backdrop-filter:blur(3px);
+  align-items:center;justify-content:center;cursor:zoom-out;z-index:1000;}
+#modal img{max-width:94vw;max-height:94vh;border-radius:var(--radius);box-shadow:0 8px 28px rgba(0,0,0,.55);animation:fadeIn .4s ease;}
 @keyframes fadeIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
 </style>
 </head>
@@ -135,14 +67,14 @@ body.extra-mode button.play-btn:hover{color:var(--red-dark);}
 
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 <script>
-/*── global vars ─*/
+/*── state ─*/
 const area=document.getElementById('area');
 const nav =document.getElementById('nav');
 const modal=document.getElementById('modal');
 let slideTimer=null,lastVideoId=null,selectedIds=null,onceMode=false;
 
-/*── nav render helpers ─*/
-function navHTML(str){nav.innerHTML=str;}
+/*── nav helpers ─*/
+function navHTML(s){nav.innerHTML=s;}
 function renderNormal(){navHTML(`
  <button class="nav-btn" id="u"><i class="ti ti-upload"></i>Upload</button>
  <button class="nav-btn" id="g"><i class="ti ti-wand"></i>Generate</button>
@@ -151,40 +83,57 @@ function renderNormal(){navHTML(`
  <button class="nav-btn" id="f"><i class="ti ti-folder"></i>Files</button>
  <button class="nav-btn" id="x"><i class="ti ti-stars"></i>Extras</button>`);
 
-  u.onclick=()=>load('/upload/');
-  g.onclick=()=>{onceMode=false;load('/selectVideos/');};
-  m.onclick=()=>api(selectedIds?`/make_distribution/?video_ids=${selectedIds}`:'/make_distribution/');
-  s.onclick=()=>show(selectedIds);
-  f.onclick=()=>load('/showDirectory/');
-  x.onclick=enterExtra;
+ u.onclick=()=>load('/upload/');
+ g.onclick=()=>{onceMode=false;load('/selectVideos/');};
+ m.onclick=()=>api(selectedIds?`/make_distribution/?video_ids=${selectedIds}`:'/make_distribution/');
+ s.onclick=()=>show(selectedIds);
+ f.onclick=()=>load('/showDirectory/');
+ x.onclick=enterExtra;
 }
-function renderExtra(){navHTML(`
- <button class="nav-btn" id="b"><i class="ti ti-arrow-back-up"></i>Back</button>
- <button class="nav-btn" id="u2"><i class="ti ti-upload"></i>Upload</button>
- <button class="nav-btn" id="o"><i class="ti ti-rocket"></i>One-Click</button>
- <button class="nav-btn" id="p"><i class="ti ti-run"></i>Pose</button> `
-);
-
-  b.onclick=leaveExtra;
-  u2.onclick=()=>load('/upload/');
-  o.onclick=()=>{onceMode=true;load('/selectVideos/');};
-  p.onclick  = ()=>load('/selectPose/');   
+function renderExtra(){
+ navHTML(`
+  <button class="nav-btn" id="b"><i class="ti ti-arrow-back-up"></i>Back</button>
+  <button class="nav-btn" id="u2"><i class="ti ti-upload"></i>Upload</button>
+  <button class="nav-btn" id="o"><i class="ti ti-rocket"></i>One-Click</button>
+  <button class="nav-btn" id="p"><i class="ti ti-run"></i>Pose</button>`);
+ b.onclick=leaveExtra;
+ u2.onclick=()=>load('/upload/');
+ o.onclick=()=>{onceMode=true;load('/selectVideos/');};
+ p.onclick=()=>load('/selectPose/');        /* pose 選択画面へ */
 }
 renderNormal();
-
-/*── color switch ─*/
 function enterExtra(){document.body.classList.add('extra-mode');document.querySelector('header').style.background='var(--grad-red)';renderExtra();}
 function leaveExtra(){document.body.classList.remove('extra-mode');document.querySelector('header').style.background='var(--grad-blue)';renderNormal();}
 
-/*── fetch wrappers ─*/
-const load=u=>fetch(u).then(r=>r.text()).then(ht=>area.innerHTML=ht);
-const api =(u,o)=>fetch(u,o).then(r=>r.json()).then(j=>{alert(j.message||j.error);return j;});
+/*── fetch helpers ─*/
+const load=u=>fetch(u).then(r=>r.text()).then(html=>{
+  area.innerHTML=html;
+  if(u.startsWith('/selectPose/')) attachPoseHandler();  /* ★ ここでハンドラ付与 */
+});
+const api=(u,o)=>fetch(u,o).then(r=>r.json());
+
+/*── pose handler ─*/
+function attachPoseHandler(){
+  const form=document.getElementById('pose-select-form');
+  if(!form) return;
+  form.onsubmit=async e=>{
+    e.preventDefault();
+    const id=e.target.querySelector('input[name="video_id"]:checked')?.value;
+    if(!id){alert('Select a video');return;}
+    const j=await api(`/poseEstimate/?video_id=${id}`);
+    if(j.error){alert(j.error);return;}
+    document.getElementById('pose-result').innerHTML=
+      `<video controls autoplay style="max-width:100%;border:1px solid #ccc;border-radius:8px;">
+         <source src="${j.video_url}" type="video/mp4">
+       </video>`;
+  };
+}
 
 /*── slideshow helpers ─*/
 function clearSlide(){clearInterval(slideTimer);slideTimer=null;}
 function startSlide(id){
   lastVideoId=id;
-  fetch(`/getThumbList/?video_id=${id}`).then(r=>r.json()).then(d=>{
+  api(`/getThumbList/?video_id=${id}`).then(d=>{
     if(d.error){alert(d.error);return;}
     let idx=0;
     modal.innerHTML='<img>';
@@ -192,24 +141,16 @@ function startSlide(id){
     img.src=`/getImage/?path=${encodeURIComponent(d.thumbs[0])}`;
     modal.style.display='flex';
     clearSlide();
-    slideTimer=setInterval(()=>{
-      idx=(idx+1)%d.thumbs.length;
-      img.src=`/getImage/?path=${encodeURIComponent(d.thumbs[idx])}`;
-    },1000);
+    slideTimer=setInterval(()=>{idx=(idx+1)%d.thumbs.length;img.src=`/getImage/?path=${encodeURIComponent(d.thumbs[idx])}`;},1000);
   });
 }
 modal.onclick=()=>{modal.style.display='none';clearSlide();};
 
-function showImage(path,vid=null){
-  clearSlide();
-  lastVideoId=vid??lastVideoId;
-  document.getElementById('preview').innerHTML=`<img src="/getImage/?path=${encodeURIComponent(path)}">`;
-}
-
-/*── distribution view ─*/
+/*── show distribution (unchanged) ─*/
 function show(ids=null){
   const q=ids?`?video_ids=${ids}`:'';
-  fetch(`/showDistribution/${q}`).then(r=>r.json()).then(fig=>{
+  api(`/showDistribution/${q}`).then(fig=>{
+    if(fig.error){alert(fig.error);return;}
     area.innerHTML=`
       <div id="dist-wrap">
         <div id="left-col">
@@ -219,7 +160,6 @@ function show(ids=null){
         </div>
         <div id="preview"><p style="opacity:.65;">Click a point to preview</p></div>
       </div>`;
-    /* list */
     const ul=document.getElementById('vlist');
     fig.videos.forEach(v=>{
       ul.insertAdjacentHTML('beforeend',`
@@ -231,32 +171,17 @@ function show(ids=null){
       const id=(e.target.closest('[data-id]')||{}).dataset.id;
       if(id) startSlide(id);
     };
-    /* plot */
     Plotly.newPlot('plot',fig.data,fig.layout);
     document.getElementById('plot').on('plotly_click',ev=>{
       const [name,,thumb]=ev.points[0].customdata;
       const vid=fig.videos.find(v=>v.name===name)?.id;
-      showImage(thumb,vid);
+      document.getElementById('preview').innerHTML=
+        `<img src="/getImage/?path=${encodeURIComponent(thumb)}">`;
+      if(vid) lastVideoId=vid;
     });
-    /* preview click -> slideshow */
     document.getElementById('preview').onclick=()=>{if(lastVideoId) startSlide(lastVideoId);};
   });
 }
-
-/*── form submit ─*/
-area.addEventListener('submit',async e=>{
-  if(e.target.id==='upload-form'){
-    e.preventDefault();await api('/upload/',{method:'POST',body:new FormData(e.target)});load('/upload/');return;}
-  if(e.target.id==='video-select-form'){
-    e.preventDefault();
-    const ids=[...e.target.querySelectorAll('input[name="video_ids"]:checked')].map(cb=>cb.value);
-    if(!ids.length){alert('動画を選択してください');return;}
-    selectedIds=ids.join(',');
-    if(!onceMode){await api(`/generateData/?video_ids=${selectedIds}`);return;}
-    await api(`/generateData/?video_ids=${selectedIds}`);
-    await api(`/make_distribution/?video_ids=${selectedIds}`);
-    show(ids);onceMode=false;}
-});
 </script>
 </body>
 </html>
