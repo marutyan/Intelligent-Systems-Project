@@ -6,7 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css" rel="stylesheet">
 <style>
-/* 先ほどの“拡大 UI 版” と同一。長いため省略せず貼付してください */
+/* ―― ここは前回のスタイル全文と同じ ―― */
 :root{
   --blue:#0b7ad2; --blue-dark:#075aa3;
   --red:#d43c3c;  --red-dark:#ac2121;
@@ -40,8 +40,7 @@ main{flex:1 1 auto;margin:1.2rem;padding:1.7rem;background:var(--card);border-ra
   align-items:center;justify-content:center;min-height:60vh;cursor:pointer;position:relative;}
 #preview img{width:100%;height:100%;object-fit:contain;animation:fadeIn .4s ease;}
 #preview::after{content:"Click to play";position:absolute;bottom:.75rem;right:1rem;
-  font-size:.85rem;color:#444;background:rgba(255,255,255,.88);padding:.14rem .6rem;border-radius:8px;
-  box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  font-size:.85rem;color:#444;background:rgba(255,255,255,.88);padding:.14rem .6rem;border-radius:8px;}
 ul.simple-list{list-style:none;padding:0;margin:0;border:1px solid #e0e6f0;border-radius:var(--radius);overflow:hidden;}
 ul.simple-list li{display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;font-size:.9rem;background:#fff;border-bottom:1px solid #e9edf3;cursor:pointer;}
 ul.simple-list li:last-child{border-bottom:none;}
@@ -73,9 +72,9 @@ const nav =document.getElementById('nav');
 const modal=document.getElementById('modal');
 let slideTimer=null,lastVideoId=null,selectedIds=null,onceMode=false;
 
-/*── nav helpers ─*/
+/*── nav render ─*/
 function navHTML(s){nav.innerHTML=s;}
-function renderNormal(){navHTML(`
+function renderNormal(){ navHTML(`
  <button class="nav-btn" id="u"><i class="ti ti-upload"></i>Upload</button>
  <button class="nav-btn" id="g"><i class="ti ti-wand"></i>Generate</button>
  <button class="nav-btn" id="m"><i class="ti ti-chart-pie"></i>Cluster</button>
@@ -90,17 +89,17 @@ function renderNormal(){navHTML(`
  f.onclick=()=>load('/showDirectory/');
  x.onclick=enterExtra;
 }
-function renderExtra(){                /* ★ BBox ボタンに変更 */
-  navHTML(`
-    <button class="nav-btn" id="b"><i class="ti ti-arrow-back-up"></i>Back</button>
-    <button class="nav-btn" id="u2"><i class="ti ti-upload"></i>Upload</button>
-    <button class="nav-btn" id="o"><i class="ti ti-rocket"></i>One-Click</button>
-    <button class="nav-btn" id="d"><i class="ti ti-focus-2"></i>BBox</button>`);
+function renderExtra(){
+ navHTML(`
+  <button class="nav-btn" id="b"><i class="ti ti-arrow-back-up"></i>Back</button>
+  <button class="nav-btn" id="u2"><i class="ti ti-upload"></i>Upload</button>
+  <button class="nav-btn" id="o"><i class="ti ti-rocket"></i>One-Click</button>
+  <button class="nav-btn" id="d"><i class="ti ti-focus-2"></i>BBox</button>`);
 
-  b.onclick  = leaveExtra;
-  u2.onclick = ()=>load('/upload/');
-  o.onclick  = ()=>{onceMode=true;load('/selectVideos/');};
-  d.onclick  = ()=>load('/selectDetect/');     /* ★ 新エンドポイント */
+ b.onclick=leaveExtra;
+ u2.onclick=()=>load('/upload/');
+ o.onclick=()=>{onceMode=true;load('/selectVideos/');};
+ d.onclick=()=>load('/selectDetect/');          // BBox
 }
 renderNormal();
 function enterExtra(){document.body.classList.add('extra-mode');document.querySelector('header').style.background='var(--grad-red)';renderExtra();}
@@ -109,21 +108,22 @@ function leaveExtra(){document.body.classList.remove('extra-mode');document.quer
 /*── fetch helpers ─*/
 const load=u=>fetch(u).then(r=>r.text()).then(html=>{
   area.innerHTML=html;
-  if(u.startsWith('/selectPose/')) attachPoseHandler();  /* ★ ここでハンドラ付与 */
+  /* ★ 選択画面ロード時に Ajax ハンドラ付与 */
+  if(u.startsWith('/selectDetect/')) attachDetectHandler();
 });
 const api=(u,o)=>fetch(u,o).then(r=>r.json());
 
-/*── pose handler ─*/
-function attachPoseHandler(){
-  const form=document.getElementById('pose-select-form');
+/*── BBox Ajax handler ─*/
+function attachDetectHandler(){
+  const form=document.getElementById('detect-select-form');
   if(!form) return;
   form.onsubmit=async e=>{
     e.preventDefault();
     const id=e.target.querySelector('input[name="video_id"]:checked')?.value;
     if(!id){alert('Select a video');return;}
-    const j=await api(`/poseEstimate/?video_id=${id}`);
+    const j=await api(`/bboxDetect/?video_id=${id}`);
     if(j.error){alert(j.error);return;}
-    document.getElementById('pose-result').innerHTML=
+    document.getElementById('detect-result').innerHTML=
       `<video controls autoplay style="max-width:100%;border:1px solid #ccc;border-radius:8px;">
          <source src="${j.video_url}" type="video/mp4">
        </video>`;
