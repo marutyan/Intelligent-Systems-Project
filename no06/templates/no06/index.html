@@ -90,16 +90,17 @@ function renderNormal(){navHTML(`
  f.onclick=()=>load('/showDirectory/');
  x.onclick=enterExtra;
 }
-function renderExtra(){
- navHTML(`
-  <button class="nav-btn" id="b"><i class="ti ti-arrow-back-up"></i>Back</button>
-  <button class="nav-btn" id="u2"><i class="ti ti-upload"></i>Upload</button>
-  <button class="nav-btn" id="o"><i class="ti ti-rocket"></i>One-Click</button>
-  <button class="nav-btn" id="p"><i class="ti ti-run"></i>Pose</button>`);
- b.onclick=leaveExtra;
- u2.onclick=()=>load('/upload/');
- o.onclick=()=>{onceMode=true;load('/selectVideos/');};
- p.onclick=()=>load('/selectPose/');        /* pose 選択画面へ */
+function renderExtra(){                /* ★ BBox ボタンに変更 */
+  navHTML(`
+    <button class="nav-btn" id="b"><i class="ti ti-arrow-back-up"></i>Back</button>
+    <button class="nav-btn" id="u2"><i class="ti ti-upload"></i>Upload</button>
+    <button class="nav-btn" id="o"><i class="ti ti-rocket"></i>One-Click</button>
+    <button class="nav-btn" id="d"><i class="ti ti-focus-2"></i>BBox</button>`);
+
+  b.onclick  = leaveExtra;
+  u2.onclick = ()=>load('/upload/');
+  o.onclick  = ()=>{onceMode=true;load('/selectVideos/');};
+  d.onclick  = ()=>load('/selectDetect/');     /* ★ 新エンドポイント */
 }
 renderNormal();
 function enterExtra(){document.body.classList.add('extra-mode');document.querySelector('header').style.background='var(--grad-red)';renderExtra();}
