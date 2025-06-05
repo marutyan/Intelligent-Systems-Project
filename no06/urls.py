@@ -15,6 +15,7 @@ urlpatterns = [
     # --- BBox detection ---
     path('selectDetect/',      views.select_detect,     name='select_detect'),
     path('bboxDetect/',        views.bbox_detect,       name='bbox_detect'),
+    path('getDetVideo/',      views.get_det_video,     name='get_det_video'),
 
     path('showDirectory/',     views.show_directory,    name='show_directory'),
 ]
