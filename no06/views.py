@@ -1,28 +1,25 @@
-import os, json, cv2
+import os, cv2
 from pathlib import Path
 from datetime import datetime
 
-from django.conf                  import settings
-from django.shortcuts             import render
-from django.http                  import JsonResponse, FileResponse, HttpResponse
+from django.conf      import settings
+from django.shortcuts import render
+from django.http      import JsonResponse, FileResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Video, DistributionData
 
+# ---------- ML Models ----------
 from ultralytics import YOLO
-import numpy as np
-from sklearn.manifold import TSNE
-from sklearn.cluster  import KMeans
-import plotly.graph_objects as go
-import plotly.colors        as pc
+pose_model   = YOLO('yolov8n-pose.pt')
+detect_model = YOLO('yolov8n.pt')          # BBox 用
 
-pose_model = YOLO('yolov8n-pose.pt')
-
-APP_DIR = settings.BASE_DIR / settings.APP_NAME
-VID_DIR = APP_DIR / 'media' / 'videos'
-ORI_DIR = APP_DIR / 'media' / 'originals'
-for d in (VID_DIR, ORI_DIR): d.mkdir(parents=True, exist_ok=True)
+# ---------- Path ----------
+APP_DIR  = settings.BASE_DIR / settings.APP_NAME
+VID_DIR  = APP_DIR / 'media' / 'videos'
+DET_DIR  = APP_DIR / 'media' / 'detect'
+for d in (VID_DIR, DET_DIR): d.mkdir(parents=True, exist_ok=True)
 
 
 # =========================================================
@@ -296,3 +293,71 @@ def get_thumb_list(request):
 
     rel_paths = [str(p.relative_to(settings.BASE_DIR)) for p in frames]
     return JsonResponse({'thumbs': rel_paths})
+
+# ----------------------------------------------------------------------
+@require_http_methods(['GET'])
+def select_detect(request):
+    vids = Video.objects.order_by('-uploaded')
+    return render(request, 'no06/select_detect.html', {'videos': vids})
+
+# ----------------------------------------------------------------------
+@require_http_methods(['GET'])
+def bbox_detect(request):
+    """
+    GET /bboxDetect/?video_id=xx
+    → YOLOv8 物体検出 & BBox 描画動画 (H.264) を生成（キャッシュ）
+    → JSON {ok:true}
+    ※ 再生は別 View /getDetVideo/ でストリーミング
+    """
+    try:
+        vid_id = int(request.GET.get('video_id', ''))
+    except (TypeError, ValueError):
+        return JsonResponse({'error': 'invalid id'}, status=400)
+
+    try:
+        video = Video.objects.get(id=vid_id)
+    except Video.DoesNotExist:
+        return JsonResponse({'error': 'not found'}, status=404)
+
+    src_path = settings.BASE_DIR / video.file
+    out_path = DET_DIR / f'{vid_id}_det.mp4'
+
+    if not out_path.exists():                       # キャッシュ無ければ生成
+        cap = cv2.VideoCapture(str(src_path))
+        if not cap.isOpened():
+            return JsonResponse({'error': 'open failed'}, status=500)
+
+        w,h  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps  = cap.get(cv2.CAP_PROP_FPS) or 30
+        four = cv2.VideoWriter_fourcc(*'avc1')      # ★ H.264 / avc1
+        vw   = cv2.VideoWriter(str(out_path), four, fps, (w,h))
+
+        while True:
+            ok, frame = cap.read()
+            if not ok: break
+            res = detect_model(frame, verbose=False)[0]
+            vw.write(res.plot())                    # BBox 描画フレーム
+        cap.release(); vw.release()
+
+    return JsonResponse({'ok': True, 'video_id': vid_id})
+
+# ----------------------------------------------------------------------
+@require_http_methods(['GET'])
+def get_det_video(request):
+    """
+    ストリーミング再生用 (Range ヘッダ対応)
+    /getDetVideo/?video_id=xx → FileResponse(video/mp4)
+    """
+    try:
+        vid_id = int(request.GET.get('video_id', ''))
+    except (TypeError, ValueError):
+        return JsonResponse({'error': 'invalid id'}, status=400)
+
+    file_path = DET_DIR / f'{vid_id}_det.mp4'
+    if not file_path.exists():
+        return JsonResponse({'error': 'not generated'}, status=404)
+
+    return FileResponse(open(file_path, 'rb'),
+                        as_attachment=False,
+                        filename=file_path.name,
+                        content_type='video/mp4')

@@ -1,0 +1,17 @@
+<h2 style="margin-bottom:1rem;">BBox Detection – Select a Video</h2>
+
+<form id="detect-select-form">
+  {% for v in videos %}
+    <p>
+      <label>
+        <input type="radio" name="video_id" value="{{ v.id }}">
+        [{{ v.id }}] {{ v.name }}
+      </label>
+    </p>
+  {% empty %}
+    <p>No videos.</p>
+  {% endfor %}
+  <button type="submit" style="padding:.5rem 1rem;">Run BBox</button>
+</form>
+
+<div id="detect-result" style="margin-top:1.5rem;"></div>
