@@ -6,12 +6,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css" rel="stylesheet">
 <style>
-/* ── compact ui (従来サイズ) ── */
 :root{
-  --blue:#0b7ad2; --blue-dark:#075aa3;
-  --red :#d43c3c; --red-dark:#ac2121;
-  --bg  :#f6f9fc; --card:#fff;
-  --radius:12px;  --shadow:0 4px 16px rgba(0,0,0,.08);
+  --blue:#0b7ad2; --blue-dark:#075aa3; --red:#d43c3c; --red-dark:#ac2121;
+  --bg:#f6f9fc;  --card:#fff; --radius:12px; --shadow:0 4px 16px rgba(0,0,0,.08);
   --grad-blue:linear-gradient(135deg,#0b7ad2 0%,#4fa3ff 100%);
   --grad-red :linear-gradient(135deg,#d43c3c 0%,#ff7373 100%);
   font-size:16px;
@@ -19,29 +16,31 @@
 *{box-sizing:border-box;margin:0;}
 html,body{height:100%;font-family:"Inter",system-ui,sans-serif;background:var(--bg);}
 body{display:flex;flex-direction:column;}
+
 header{flex:0 0 auto;background:var(--grad-blue);color:#fff;
   padding:1rem 1.25rem .9rem;display:flex;flex-direction:column;gap:.4rem;
   box-shadow:var(--shadow);transition:.3s;}
 body.extra-mode header{background:var(--grad-red);}
 header h1{font-size:1.3rem;font-weight:600;}
 #nav{display:flex;flex-wrap:wrap;gap:.6rem;}
-button.nav-btn{border:none;border-radius:var(--radius);
-  padding:.48rem 1.05rem;font-size:.88rem;font-weight:500;display:flex;align-items:center;gap:.4rem;
-  background:#fff;color:var(--blue);box-shadow:0 2px 6px rgba(0,0,0,.06);cursor:pointer;transition:.15s;}
+button.nav-btn{border:none;border-radius:var(--radius);padding:.48rem 1.05rem;font-size:.88rem;
+  font-weight:500;display:flex;align-items:center;gap:.4rem;background:#fff;color:var(--blue);
+  box-shadow:0 2px 6px rgba(0,0,0,.06);cursor:pointer;transition:.15s;}
 body.extra-mode button.nav-btn{color:var(--red);}
 button.nav-btn:hover{transform:translateY(-2px);box-shadow:0 6px 12px rgba(0,0,0,.12);}
 body.extra-mode button.nav-btn:hover{color:var(--red-dark);}
+
 main{flex:1 1 auto;margin:1rem;padding:1.4rem;background:var(--card);border-radius:var(--radius);
   box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:auto;font-size:.9rem;}
 #dist-wrap{flex:1 1 auto;display:flex;gap:1.3rem;flex-wrap:wrap;height:100%;}
 #left-col,#preview{flex:1 1 0;min-width:350px;display:flex;flex-direction:column;min-height:0;}
 #plot{flex:1 1 auto;min-height:60vh;}
-#preview{border:1px solid #e3e8ee;border-radius:var(--radius);
-  background:#f0f6ff;display:flex;align-items:center;justify-content:center;
-  min-height:60vh;cursor:pointer;position:relative;}
+#preview{border:1px solid #e3e8ee;border-radius:var(--radius);background:#f0f6ff;
+  display:flex;align-items:center;justify-content:center;min-height:60vh;cursor:pointer;position:relative;}
 #preview img{width:100%;height:100%;object-fit:contain;animation:fadeIn .35s ease;}
 #preview::after{content:"Click to play";position:absolute;bottom:.6rem;right:.8rem;font-size:.8rem;
   background:rgba(255,255,255,.85);padding:.1rem .5rem;border-radius:8px;color:#555;}
+
 ul.simple-list{list-style:none;padding:0;margin:0;border:1px solid #e3e8ee;border-radius:var(--radius);overflow:hidden;}
 ul.simple-list li{display:flex;align-items:center;gap:.55rem;padding:.55rem .85rem;font-size:.83rem;background:#fff;border-bottom:1px solid #e9edf3;cursor:pointer;}
 ul.simple-list li:last-child{border-bottom:none;}
@@ -50,9 +49,11 @@ button.play-btn{margin-left:auto;border:none;background:none;font-size:1.05rem;c
 body.extra-mode button.play-btn{color:var(--red);}
 button.play-btn:hover{color:var(--blue-dark);}
 body.extra-mode button.play-btn:hover{color:var(--red-dark);}
+
 #modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(2px);
   align-items:center;justify-content:center;cursor:zoom-out;z-index:1000;}
-#modal img{max-width:92vw;max-height:92vh;border-radius:var(--radius);box-shadow:0 6px 24px rgba(0,0,0,.55);animation:fadeIn .35s ease;}
+#modal img{max-width:92vw;max-height:92vh;border-radius:var(--radius);
+  box-shadow:0 6px 24px rgba(0,0,0,.55);animation:fadeIn .35s ease;}
 @keyframes fadeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
 </style>
 </head>
@@ -83,8 +84,11 @@ function renderNormal(){
 <button class="nav-btn" id="f"><i class="ti ti-folder"></i>Files</button>
 <button class="nav-btn" id="x"><i class="ti ti-stars"></i>Extras</button>`);
   u.onclick=()=>load('/upload/');
-  g.onclick=()=>{onceMode=false;load('/selectVideos/');};
-  m.onclick=()=>api(selectedIds?`/make_distribution/?video_ids=${selectedIds}`:'/make_distribution/');
+  g.onclick=()=>{onceMode=false;load('/selectVideos/');};          // Generate → select
+  m.onclick=()=>{                                         // Cluster
+       const url=selectedIds?`/make_distribution/?video_ids=${selectedIds}`:'/make_distribution/';
+       api(url).then(j=>alert(j.message||j.error));      // ★ 完了通知
+  };
   s.onclick=()=>show(selectedIds);
   f.onclick=()=>load('/showDirectory/');
   x.onclick=enterExtra;
@@ -111,7 +115,7 @@ function attachDetect(){
   form.onsubmit=async e=>{
     e.preventDefault();
     const id=form.video_id?.value;
-    if(!id){alert('Select');return;}
+    if(!id){alert('Select video');return;}
     const j=await api(`/bboxDetect/?video_id=${id}`);
     if(j.error){alert(j.error);return;}
     document.getElementById('detect-result').innerHTML=
@@ -123,14 +127,11 @@ function attachDetect(){
 /*── slideshow ─*/
 function clearSlide(){clearInterval(slideTimer);slideTimer=null;}
 function startSlide(id){
-  lastVideoId=id;
-  api(`/getThumbList/?video_id=${id}`).then(d=>{
+  lastVideoId=id;api(`/getThumbList/?video_id=${id}`).then(d=>{
     if(d.error){alert(d.error);return;}
-    modal.innerHTML='<img>';
-    const img=modal.querySelector('img');let i=0;
+    modal.innerHTML='<img>';const img=modal.querySelector('img');let i=0;
     img.src=`/getImage/?path=${encodeURIComponent(d.thumbs[0])}`;
-    modal.style.display='flex';
-    clearSlide();
+    modal.style.display='flex';clearSlide();
     slideTimer=setInterval(()=>{i=(i+1)%d.thumbs.length;
       img.src=`/getImage/?path=${encodeURIComponent(d.thumbs[i])}`;},1000);
   });
@@ -148,6 +149,7 @@ function show(ids=null){
     fig.videos.forEach(v=>ul.insertAdjacentHTML('beforeend',
       `<li data-id="${v.id}">[${v.id}] ${v.name}<button class="play-btn"><i class="ti ti-player-play"></i></button></li>`));
     ul.onclick=e=>{const li=e.target.closest('[data-id]');if(li) startSlide(li.dataset.id);};
+
     Plotly.newPlot('plot',fig.data,fig.layout);
     document.getElementById('plot').on('plotly_click',ev=>{
       const [name,,thumb]=ev.points[0].customdata;
@@ -159,7 +161,7 @@ function show(ids=null){
   });
 }
 
-/*── global form submit (upload & data-generate) ─*/
+/*── global form submit ─*/
 area.addEventListener('submit',async e=>{
   if(e.target.id==='upload-form'){
     e.preventDefault();
@@ -169,14 +171,15 @@ area.addEventListener('submit',async e=>{
   if(e.target.id==='video-select-form'){
     e.preventDefault();
     const ids=[...e.target.querySelectorAll('input[name="video_ids"]:checked')].map(cb=>cb.value);
-    if(!ids.length){alert('select');return;}
+    if(!ids.length){alert('Select');return;}
     selectedIds=ids.join(',');
+    /* Generate */
+    const g=await api(`/generateData/?video_ids=${selectedIds}`);
+    alert(g.message||g.error);          // ★ 完了通知
     if(onceMode){
-      await api(`/generateData/?video_ids=${selectedIds}`);
-      await api(`/make_distribution/?video_ids=${selectedIds}`);
+      const c=await api(`/make_distribution/?video_ids=${selectedIds}`);
+      alert(c.message||c.error);        // ★ クラスタ通知 (one-click)
       show(ids);onceMode=false;
-    }else{
-      await api(`/generateData/?video_ids=${selectedIds}`);
     }
   }
 });
