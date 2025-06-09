@@ -87,7 +87,7 @@ function renderNormal(){
   g.onclick=()=>{onceMode=false;load('/selectVideos/');};          // Generate → select
   m.onclick=()=>{                                         // Cluster
        const url=selectedIds?`/make_distribution/?video_ids=${selectedIds}`:'/make_distribution/';
-       api(url).then(j=>alert(j.message||j.error));      // ★ 完了通知
+       api(url).then(j=>alert(j.message||j.error));      // 完了通知
   };
   s.onclick=()=>show(selectedIds);
   f.onclick=()=>load('/showDirectory/');
@@ -173,12 +173,11 @@ area.addEventListener('submit',async e=>{
     const ids=[...e.target.querySelectorAll('input[name="video_ids"]:checked')].map(cb=>cb.value);
     if(!ids.length){alert('Select');return;}
     selectedIds=ids.join(',');
-    /* Generate */
     const g=await api(`/generateData/?video_ids=${selectedIds}`);
-    alert(g.message||g.error);          // ★ 完了通知
+    alert(g.message||g.error);
     if(onceMode){
       const c=await api(`/make_distribution/?video_ids=${selectedIds}`);
-      alert(c.message||c.error);        // ★ クラスタ通知 (one-click)
+      alert(c.message||c.error);
       show(ids);onceMode=false;
     }
   }
