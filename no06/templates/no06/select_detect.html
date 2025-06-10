@@ -9,13 +9,16 @@
 
 <style>
 :root{
-  --blue:#0b7ad2; --blue-dark:#075aa3; --green:#1abc9c;
+  --blue:#0b7ad2;        /* 基調色 */
+  --blue-dark:#075aa3;
+  --green:#1abc9c;       /* チェック丸 */
   --radius:12px;
   font-family:"Inter",system-ui,sans-serif;
 }
-body{margin:0;padding:0;font-family:inherit;}
 
-h2{margin:.5rem 0 1.2rem;font-weight:600;font-size:1.2rem;color:#333;}
+body{margin:0;padding:0;font-family:inherit;color:#333;}
+
+h2{margin:.6rem 0 1.3rem;font-size:1.25rem;font-weight:600;}
 
 #grid{
   display:grid;
@@ -23,47 +26,50 @@ h2{margin:.5rem 0 1.2rem;font-weight:600;font-size:1.2rem;color:#333;}
   gap:1rem;
 }
 
-/* ------- カード -------- */
+/* ── カード ──────────────────── */
 .card{
   position:relative;
-  border:1px solid #e1e6f0;
+  border:2px solid transparent;
   border-radius:var(--radius);
-  overflow:hidden;
-  cursor:pointer;
-  transition:transform .18s,box-shadow .18s;
-  background:#fff;min-height:140px;
+  min-height:140px;cursor:pointer;
+  background:#fff;display:flex;align-items:center;
+  transition:border-color .18s,box-shadow .18s,background .18s,transform .18s;
 }
-.card:hover{transform:translateY(-4px);box-shadow:0 6px 18px rgba(0,0,0,.1);}
+.card:hover{
+  background:#f1f7ff;
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(0,0,0,.08);
+}
 .card input[type=radio]{position:absolute;opacity:0;pointer-events:none;}
 
 .card-title{
-  padding:.85rem;font-size:.9rem;font-weight:500;color:#333;
-  display:flex;align-items:center;gap:.4rem;height:100%;
+  padding:1rem;
+  font-size:.9rem;font-weight:500;
+  display:flex;align-items:center;gap:.45rem;
 }
 
-/* ------- 選択状態 ------------- */
+/* ── 選択状態（色を大きく変化） ── */
 .card.selected{
-  outline:3px solid var(--blue);
+  background:#e8f2ff;              /* ★ 薄いブルー背景 */
+  border-color:var(--blue);        /* 青枠 */
+  box-shadow:0 0 0 3px rgba(11,122,210,.35);
 }
 .card.selected::after{
   content:"";
-  position:absolute;top:.6rem;right:.6rem;width:20px;height:20px;
-  background:var(--green);
+  position:absolute;top:8px;right:8px;
+  width:22px;height:22px;border-radius:50%;background:var(--green);
   mask:url('https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/icons/check.svg') center/contain no-repeat;
 }
 
-/* ボタン */
+/* ── 実行ボタン ───────────────── */
 .run-btn{
-  margin-top:1.4rem;
-  padding:.55rem 1.2rem;
-  font-size:.9rem;font-weight:600;
+  margin-top:1.4rem;padding:.55rem 1.3rem;font-size:.92rem;font-weight:600;
   border:none;border-radius:var(--radius);
-  background:var(--blue);color:#fff;cursor:pointer;
-  transition:background .15s;
+  background:var(--blue);color:#fff;cursor:pointer;transition:background .15s;
 }
 .run-btn:hover{background:var(--blue-dark);}
 
-#detect-result{margin-top:1.4rem;}
+#detect-result{margin-top:1.6rem;}
 </style>
 </head>
 <body>
@@ -75,7 +81,7 @@ h2{margin:.5rem 0 1.2rem;font-weight:600;font-size:1.2rem;color:#333;}
     {% for v in videos %}
       <label class="card">
         <input type="radio" name="video_id" value="{{ v.id }}">
-        <span class="card-title"><i class="ti ti-video"></i>[{{ v.id }}] {{ v.name }}</span>
+        <span class="card-title"><i class="ti ti-video"></i>&nbsp;[{{ v.id }}] {{ v.name }}</span>
       </label>
     {% empty %}
       <p>No videos available.</p>
@@ -88,12 +94,13 @@ h2{margin:.5rem 0 1.2rem;font-weight:600;font-size:1.2rem;color:#333;}
 <div id="detect-result"></div>
 
 <script>
-/* カードをクリックしたら選択状態を視覚化 */
-document.getElementById('grid').addEventListener('click',e=>{
+/* ── クリックで selected クラス & input チェック ── */
+document.getElementById('grid').addEventListener('click', e=>{
   const card=e.target.closest('.card');
   if(!card) return;
   document.querySelectorAll('.card').forEach(c=>c.classList.remove('selected'));
   card.classList.add('selected');
+  card.querySelector('input[type="radio"]').checked=true;
 });
 </script>
 </body>
