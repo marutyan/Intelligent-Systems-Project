@@ -9,10 +9,12 @@
 
 <style>
 :root{
-  --blue:#0b7ad2; --blue-dark:#075aa3; --radius:12px;
+  --blue:#0b7ad2; --blue-dark:#075aa3; --green:#1abc9c;
+  --radius:12px;
   font-family:"Inter",system-ui,sans-serif;
 }
 body{margin:0;padding:0;font-family:inherit;}
+
 h2{margin:.5rem 0 1.2rem;font-weight:600;font-size:1.2rem;color:#333;}
 
 #grid{
@@ -21,29 +23,38 @@ h2{margin:.5rem 0 1.2rem;font-weight:600;font-size:1.2rem;color:#333;}
   gap:1rem;
 }
 
+/* ------- カード -------- */
 .card{
   position:relative;
   border:1px solid #e1e6f0;
   border-radius:var(--radius);
   overflow:hidden;
   cursor:pointer;
-  transition:transform .2s,box-shadow .2s;
-  background:#fff;
-  min-height:140px;
+  transition:transform .18s,box-shadow .18s;
+  background:#fff;min-height:140px;
 }
-.card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 6px 18px rgba(0,0,0,.1);
-}
+.card:hover{transform:translateY(-4px);box-shadow:0 6px 18px rgba(0,0,0,.1);}
 .card input[type=radio]{position:absolute;opacity:0;pointer-events:none;}
-.card.selected{outline:3px solid var(--blue);}
 
 .card-title{
-  padding:.8rem;font-size:.9rem;font-weight:500;color:#333;
-  display:flex;align-items:center;gap:.35rem;height:100%;
+  padding:.85rem;font-size:.9rem;font-weight:500;color:#333;
+  display:flex;align-items:center;gap:.4rem;height:100%;
 }
+
+/* ------- 選択状態 ------------- */
+.card.selected{
+  outline:3px solid var(--blue);
+}
+.card.selected::after{
+  content:"";
+  position:absolute;top:.6rem;right:.6rem;width:20px;height:20px;
+  background:var(--green);
+  mask:url('https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/icons/check.svg') center/contain no-repeat;
+}
+
+/* ボタン */
 .run-btn{
-  margin-top:1.3rem;
+  margin-top:1.4rem;
   padding:.55rem 1.2rem;
   font-size:.9rem;font-weight:600;
   border:none;border-radius:var(--radius);
@@ -77,7 +88,7 @@ h2{margin:.5rem 0 1.2rem;font-weight:600;font-size:1.2rem;color:#333;}
 <div id="detect-result"></div>
 
 <script>
-/* 選択したカードに枠線を付けるだけの UI 効果 */
+/* カードをクリックしたら選択状態を視覚化 */
 document.getElementById('grid').addEventListener('click',e=>{
   const card=e.target.closest('.card');
   if(!card) return;
