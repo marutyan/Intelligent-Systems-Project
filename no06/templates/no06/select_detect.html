@@ -1,17 +1,89 @@
-<h2 style="margin-bottom:1rem;">BBox Detection – Select a Video</h2>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>BBox Detection – Select Video</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css" rel="stylesheet">
+
+<style>
+:root{
+  --blue:#0b7ad2; --blue-dark:#075aa3; --radius:12px;
+  font-family:"Inter",system-ui,sans-serif;
+}
+body{margin:0;padding:0;font-family:inherit;}
+h2{margin:.5rem 0 1.2rem;font-weight:600;font-size:1.2rem;color:#333;}
+
+#grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:1rem;
+}
+
+.card{
+  position:relative;
+  border:1px solid #e1e6f0;
+  border-radius:var(--radius);
+  overflow:hidden;
+  cursor:pointer;
+  transition:transform .2s,box-shadow .2s;
+  background:#fff;
+  min-height:140px;
+}
+.card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 6px 18px rgba(0,0,0,.1);
+}
+.card input[type=radio]{position:absolute;opacity:0;pointer-events:none;}
+.card.selected{outline:3px solid var(--blue);}
+
+.card-title{
+  padding:.8rem;font-size:.9rem;font-weight:500;color:#333;
+  display:flex;align-items:center;gap:.35rem;height:100%;
+}
+.run-btn{
+  margin-top:1.3rem;
+  padding:.55rem 1.2rem;
+  font-size:.9rem;font-weight:600;
+  border:none;border-radius:var(--radius);
+  background:var(--blue);color:#fff;cursor:pointer;
+  transition:background .15s;
+}
+.run-btn:hover{background:var(--blue-dark);}
+
+#detect-result{margin-top:1.4rem;}
+</style>
+</head>
+<body>
+
+<h2>Select a video for BBox Detection</h2>
 
 <form id="detect-select-form">
-  {% for v in videos %}
-    <p>
-      <label>
+  <div id="grid">
+    {% for v in videos %}
+      <label class="card">
         <input type="radio" name="video_id" value="{{ v.id }}">
-        [{{ v.id }}] {{ v.name }}
+        <span class="card-title"><i class="ti ti-video"></i>[{{ v.id }}] {{ v.name }}</span>
       </label>
-    </p>
-  {% empty %}
-    <p>No videos.</p>
-  {% endfor %}
-  <button type="submit" style="padding:.5rem 1rem;">Run BBox</button>
+    {% empty %}
+      <p>No videos available.</p>
+    {% endfor %}
+  </div>
+
+  <button type="submit" class="run-btn"><i class="ti ti-focus-2"></i>&nbsp;Run BBox</button>
 </form>
 
-<div id="detect-result" style="margin-top:1.5rem;"></div>
+<div id="detect-result"></div>
+
+<script>
+/* 選択したカードに枠線を付けるだけの UI 効果 */
+document.getElementById('grid').addEventListener('click',e=>{
+  const card=e.target.closest('.card');
+  if(!card) return;
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+});
+</script>
+</body>
+</html>
