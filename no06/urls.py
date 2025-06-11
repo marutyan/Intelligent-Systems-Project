@@ -1,9 +1,11 @@
+# >>> no06/urls.py 全文 <<<
 from django.urls import path
 from . import views
 
 urlpatterns = [
     path('',                   views.index,             name='index'),
     path('upload/',            views.upload_video,      name='upload_video'),
+    path('deleteVideo/<int:vid>/', views.delete_video,  name='delete_video'),
 
     # ① データ生成 / 分布
     path('selectVideos/',      views.select_videos,     name='select_videos'),
@@ -21,3 +23,4 @@ urlpatterns = [
     path('bboxDetect/',        views.bbox_detect,       name='bbox_detect'),
     path('getDetVideo/',       views.get_det_video,     name='get_det_video'),
 ]
+# >>> ここまで no06/urls.py 全文 <<<

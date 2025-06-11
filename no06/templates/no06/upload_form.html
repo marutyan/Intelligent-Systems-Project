@@ -1,3 +1,4 @@
+<!-- >>> no06/templates/no06/upload_form.html 全文 >>> -->
 <form id="upload-form" action="/upload/" method="post" enctype="multipart/form-data">
   {% csrf_token %}
   <p><label>タイトル:</label>
@@ -15,7 +16,7 @@
 <table>
   <thead>
     <tr>
-      <th>ID</th><th>タイトル</th><th>ファイル</th><th>アップロード日時</th>
+      <th>ID</th><th>タイトル</th><th>ファイル</th><th>日時</th><th>削除</th>
     </tr>
   </thead>
   <tbody>
@@ -24,18 +25,19 @@
       <td>{{ v.id }}</td>
       <td>{{ v.name }}</td>
       <td>
-        <!-- ★ ここを getVideo に -->
         <a href="/getVideo/?path={{ v.file }}">{{ v.file|cut:'no06/media/videos/' }}</a>
       </td>
       <td>{{ v.uploaded|date:"Y-m-d H:i:s" }}</td>
+      <td><button class="delete-btn" data-id="{{ v.id }}">Delete</button></td>
     </tr>
     {% empty %}
-    <tr><td colspan="4">まだ動画はありません。</td></tr>
+    <tr><td colspan="5">まだ動画はありません。</td></tr>
     {% endfor %}
   </tbody>
 </table>
 
 <script>
+/* アップロード (Ajax) */
 document.getElementById('upload-form').onsubmit = async (e)=>{
   e.preventDefault();
   const fd=new FormData(e.target);
@@ -46,8 +48,19 @@ document.getElementById('upload-form').onsubmit = async (e)=>{
   });
   const j=await res.json();
   alert(j.message||j.error);
-  fetch('/upload/').then(r=>r.text()).then(html=>{
-      document.getElementById('content-area').innerHTML=html;
-  });
+  location.reload();
 };
+
+/* 削除ボタン */
+document.addEventListener('click', async (e)=>{
+  const btn=e.target.closest('.delete-btn');
+  if(!btn) return;
+  if(!confirm('本当に削除しますか？')) return;
+  const id=btn.dataset.id;
+  const res=await fetch(`/deleteVideo/${id}/`,{method:'POST'});
+  const j=await res.json();
+  alert(j.message||j.error);
+  location.reload();
+});
 </script>
+<!-- <<< no06/templates/no06/upload_form.html 全文 <<< -->

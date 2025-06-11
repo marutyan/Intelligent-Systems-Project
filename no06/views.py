@@ -1,10 +1,10 @@
-#  >>> ここからファイル冒頭 <<<
+# >>> no06/views.py 全文 <<<
 import os, cv2, json, subprocess
 from pathlib import Path
 from datetime import datetime
 
 from django.conf import settings
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http  import JsonResponse, FileResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -53,7 +53,7 @@ def select_videos(request):
 @csrf_exempt
 @require_http_methods(['GET', 'POST'])
 def upload_video(request):
-    """動画アップロード + 一覧"""
+    """動画アップロード + 一覧ページ"""
     if request.method == 'GET':
         vids = Video.objects.order_by('-uploaded')
         return render(request, 'no06/upload_form.html', {'videos': vids})
@@ -73,6 +73,34 @@ def upload_video(request):
         uploaded = datetime.now(),
     )
     return JsonResponse({'message': f'"{vfile.name}" をアップロードしました。'})
+
+# ---------------------------------------------------------
+@csrf_exempt
+@require_http_methods(['POST'])
+def delete_video(request, vid):
+    """
+    動画 1 本と派生ファイルをすべて削除
+    ・Video レコード削除（CASCADE で DistributionData も消える）
+    ・videos/originals/detect/processed にある vid_*.xxx を物理削除
+    """
+    video = get_object_or_404(Video, id=vid)
+
+    # 元動画
+    (settings.BASE_DIR / video.file).unlink(missing_ok=True)
+
+    # 派生ファイル
+    patterns = [
+        ORI_DIR.glob(f'{vid}_*.jpg'),
+        DET_DIR.glob(f'{vid}_*.mp4'),
+        PRO_DIR.glob(f'{vid}_*.mp4'),
+    ]
+    for itr in patterns:
+        for p in itr:
+            p.unlink(missing_ok=True)
+
+    # DB レコード
+    video.delete()
+    return JsonResponse({'message': f'Video {vid} deleted.'})
 
 # =========================================================
 # 特徴量生成 (YOLO-Pose → RGB12)
@@ -437,4 +465,4 @@ def get_det_video(request):
                         as_attachment=False,
                         filename=file_path.name,
                         content_type='video/mp4')
-#  >>> ここまでファイル末尾 <<<
+# >>> ここまで no06/views.py 全文 <<<
