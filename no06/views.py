@@ -4,7 +4,7 @@ from pathlib import Path
 from datetime import datetime
 
 from django.conf import settings
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http  import JsonResponse, FileResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -22,7 +22,7 @@ import plotly.colors        as pc
 from ultralytics import YOLO
 
 pose_model   = YOLO('yolov8n-pose.pt')   # 肩腰 RGB12
-detect_model = YOLO('yolov8n.pt')        # BBox
+detect_model = YOLO('yolov8n.pt')        # BBox 検出
 
 # ──────────────────────────────────────────────
 # 主要パス
@@ -53,7 +53,7 @@ def select_videos(request):
 @csrf_exempt
 @require_http_methods(['GET', 'POST'])
 def upload_video(request):
-    """動画アップロード + 一覧ページ"""
+    """動画アップロード + 一覧ページ (Ajax アップロード)"""
     if request.method == 'GET':
         vids = Video.objects.order_by('-uploaded')
         return render(request, 'no06/upload_form.html', {'videos': vids})
@@ -79,16 +79,16 @@ def upload_video(request):
 @require_http_methods(['POST'])
 def delete_video(request, vid):
     """
-    動画 1 本と派生ファイルをすべて削除
-    ・Video レコード削除（CASCADE で DistributionData も消える）
-    ・videos/originals/detect/processed にある vid_*.xxx を物理削除
+    動画 1 本とその派生ファイルをすべて削除
+    - 通常フォーム: トップページへリダイレクト
+    - Ajax        : JSON メッセージ
     """
     video = get_object_or_404(Video, id=vid)
 
-    # 元動画
+    # 元動画ファイル
     (settings.BASE_DIR / video.file).unlink(missing_ok=True)
 
-    # 派生ファイル
+    # 派生ファイル (サムネ、検出動画など)
     patterns = [
         ORI_DIR.glob(f'{vid}_*.jpg'),
         DET_DIR.glob(f'{vid}_*.mp4'),
@@ -98,9 +98,15 @@ def delete_video(request, vid):
         for p in itr:
             p.unlink(missing_ok=True)
 
-    # DB レコード
+    # DB レコード削除（CASCADE で DistributionData も消える）
     video.delete()
-    return JsonResponse({'message': f'Video {vid} deleted.'})
+
+    # ---- 戻り値を分岐 -----------------------------------
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'message': f'Video {vid} deleted.'})
+
+    # フォーム送信の場合はトップページ (`index`) に戻す
+    return redirect('no06:index')
 
 # =========================================================
 # 特徴量生成 (YOLO-Pose → RGB12)
@@ -465,4 +471,4 @@ def get_det_video(request):
                         as_attachment=False,
                         filename=file_path.name,
                         content_type='video/mp4')
-# >>> ここまで no06/views.py 全文 <<<
+# >>> no06/views.py 全文ここまで <<<
