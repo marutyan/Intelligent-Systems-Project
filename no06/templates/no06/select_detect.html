@@ -4,70 +4,61 @@
 <meta charset="UTF-8">
 <title>BBox Detection – Select Video</title>
 
+<!-- Fonts / Icons -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css" rel="stylesheet">
 
 <style>
 :root{
-  --blue:#0b7ad2;        /* 基調色 */
-  --blue-dark:#075aa3;
-  --green:#1abc9c;       /* チェック丸 */
-  --radius:12px;
-  font-family:"Inter",system-ui,sans-serif;
+  --blue  : #0b7ad2;
+  --blue-d: #075aa3;
+  --blue-l: #e8f1ff;
+  --radius: 10px;
+  font-family: "Inter", system-ui, sans-serif;
 }
-
 body{margin:0;padding:0;font-family:inherit;color:#333;}
 
-h2{margin:.6rem 0 1.3rem;font-size:1.25rem;font-weight:600;}
-
-#grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:1rem;
+h2{
+  margin:.7rem 0 1.3rem;
+  font-size:1.25rem;
+  font-weight:600;
 }
 
-/* ── カード ──────────────────── */
-.card{
-  position:relative;
-  border:2px solid transparent;
+/* ---------- List group ---------- */
+.list-group{
+  border:1px solid #dfe4ee;
   border-radius:var(--radius);
-  min-height:140px;cursor:pointer;
-  background:#fff;display:flex;align-items:center;
-  transition:border-color .18s,box-shadow .18s,background .18s,transform .18s;
-}
-.card:hover{
-  background:#f1f7ff;
-  transform:translateY(-2px);
-  box-shadow:0 4px 12px rgba(0,0,0,.08);
-}
-.card input[type=radio]{position:absolute;opacity:0;pointer-events:none;}
-
-.card-title{
-  padding:1rem;
-  font-size:.9rem;font-weight:500;
-  display:flex;align-items:center;gap:.45rem;
+  overflow:hidden;
 }
 
-/* ── 選択状態（色を大きく変化） ── */
-.card.selected{
-  background:#e8f2ff;              /* ★ 薄いブルー背景 */
-  border-color:var(--blue);        /* 青枠 */
-  box-shadow:0 0 0 3px rgba(11,122,210,.35);
+.list-item{
+  display:flex;align-items:center;gap:.65rem;
+  padding:.75rem 1rem;
+  border-bottom:1px solid #e8edf5;
+  background:#fff;
+  cursor:pointer;
+  transition:background .15s,color .15s;
 }
-.card.selected::after{
-  content:"";
-  position:absolute;top:8px;right:8px;
-  width:22px;height:22px;border-radius:50%;background:var(--green);
-  mask:url('https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/icons/check.svg') center/contain no-repeat;
-}
+.list-item:last-child{border-bottom:none;}
+.list-item:hover{background:var(--blue-l);}
+.list-item input{pointer-events:none;}
 
-/* ── 実行ボタン ───────────────── */
+.list-item.selected{
+  background:var(--blue);
+  color:#fff;
+}
+.list-item.selected i{color:#fff;}
+.list-item i{color:var(--blue);}
+
 .run-btn{
-  margin-top:1.4rem;padding:.55rem 1.3rem;font-size:.92rem;font-weight:600;
+  margin-top:1.3rem;
+  padding:.55rem 1.25rem;
+  font-size:.92rem;font-weight:600;
   border:none;border-radius:var(--radius);
-  background:var(--blue);color:#fff;cursor:pointer;transition:background .15s;
+  background:var(--blue);color:#fff;cursor:pointer;
+  transition:background .15s;
 }
-.run-btn:hover{background:var(--blue-dark);}
+.run-btn:hover{background:var(--blue-d);}
 
 #detect-result{margin-top:1.6rem;}
 </style>
@@ -77,14 +68,15 @@ h2{margin:.6rem 0 1.3rem;font-size:1.25rem;font-weight:600;}
 <h2>Select a video for BBox Detection</h2>
 
 <form id="detect-select-form">
-  <div id="grid">
+
+  <div class="list-group" id="video-list">
     {% for v in videos %}
-      <label class="card">
+      <label class="list-item">
         <input type="radio" name="video_id" value="{{ v.id }}">
-        <span class="card-title"><i class="ti ti-video"></i>&nbsp;[{{ v.id }}] {{ v.name }}</span>
+        <i class="ti ti-video"></i> [{{ v.id }}] {{ v.name }}
       </label>
     {% empty %}
-      <p>No videos available.</p>
+      <p style="padding:.8rem;">No videos available.</p>
     {% endfor %}
   </div>
 
@@ -94,13 +86,14 @@ h2{margin:.6rem 0 1.3rem;font-size:1.25rem;font-weight:600;}
 <div id="detect-result"></div>
 
 <script>
-/* ── クリックで selected クラス & input チェック ── */
-document.getElementById('grid').addEventListener('click', e=>{
-  const card=e.target.closest('.card');
-  if(!card) return;
-  document.querySelectorAll('.card').forEach(c=>c.classList.remove('selected'));
-  card.classList.add('selected');
-  card.querySelector('input[type="radio"]').checked=true;
+/* --- 行クリックで選択ハイライト --- */
+const list=document.getElementById('video-list');
+list?.addEventListener('click',e=>{
+  const row=e.target.closest('.list-item');
+  if(!row) return;
+  list.querySelectorAll('.list-item').forEach(r=>r.classList.remove('selected'));
+  row.classList.add('selected');
+  row.querySelector('input').checked=true;
 });
 </script>
 </body>
