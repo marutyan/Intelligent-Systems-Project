@@ -1,18 +1,17 @@
+<!-- >>> no06/templates/no06/generate_data.html >>> -->
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>特徴量生成</title>
-</head>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Feature generation</title></head>
 <body>
-  <h1>特徴量を生成しました</h1>
+  <h1>Feature generation completed</h1>
   <ul>
     {% for video in videos %}
-      <li>{{ video.title }} – 処理完了</li>
+      <li>{{ video.title }} – done</li>
     {% empty %}
-      <li>対象動画がありません。</li>
+      <li>No target videos.</li>
     {% endfor %}
   </ul>
-  <a href="{% url 'no05:upload_video' %}">← アップロードに戻る</a>
+  <a href="{% url 'no06:upload_video' %}">← Back to Upload</a>
 </body>
 </html>
+<!-- <<< no06/templates/no06/generate_data.html <<< -->

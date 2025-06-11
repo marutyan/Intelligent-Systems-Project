@@ -1,4 +1,5 @@
-<h3 style="margin-top:0">データ生成する動画を選択してください</h3>
+<!-- >>> no06/templates/no06/select_videos.html >>> -->
+<h3 style="margin-bottom:.8rem;">Select videos for feature generation</h3>
 
 <form id="video-select-form">
   {% csrf_token %}
@@ -11,14 +12,10 @@
         </label>
       </li>
     {% empty %}
-      <li>動画がありません。</li>
+      <li>No videos available.</li>
     {% endfor %}
   </ul>
 
-  <button type="submit" style="margin-top:.6rem;">選択してデータ生成</button>
+  <button type="submit" style="margin-top:.8rem;">Generate Data</button>
 </form>
-
-<style>
-ul.simple-list{list-style:none;padding-left:0;}
-ul.simple-list li{padding:.35rem 0;border-bottom:1px solid #e3e7ea;}
-</style>
+<!-- <<< no06/templates/no06/select_videos.html <<< -->

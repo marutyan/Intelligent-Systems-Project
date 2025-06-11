@@ -1,5 +1,6 @@
+<!-- >>> no06/templates/no06/index.html >>> -->
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Video Analytics (no06)</title>
@@ -30,12 +31,15 @@ body.extra-mode button.nav-btn{color:var(--red);}
 button.nav-btn:hover{transform:translateY(-2px);box-shadow:0 6px 12px rgba(0,0,0,.12);}
 body.extra-mode button.nav-btn:hover{color:var(--red-dark);}
 
-main{flex:1 1 auto;margin:1rem;padding:1.4rem;background:var(--card);border-radius:var(--radius);
-  box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:auto;font-size:.9rem;}
+main{flex:1 1 auto;margin:1rem 1rem 1.4rem;padding:1.4rem;background:var(--card);
+  border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;
+  overflow:auto;font-size:.9rem;}
 #dist-wrap{flex:1 1 auto;display:flex;gap:1.3rem;flex-wrap:wrap;height:100%;}
-#left-col,#preview{flex:1 1 0;min-width:350px;display:flex;flex-direction:column;min-height:0;}
+/* 左列（動画 + 3D グラフ）を画面幅 50% 固定に */
+#left-col{flex:0 0 50%;min-width:450px;display:flex;flex-direction:column;min-height:0;}
 #plot{flex:1 1 auto;min-height:60vh;}
-#preview{border:1px solid #e3e8ee;border-radius:var(--radius);background:#f0f6ff;
+/* プレビュー領域は残り 50% */
+#preview{flex:1 1 45%;border:1px solid #e3e8ee;border-radius:var(--radius);background:#f0f6ff;
   display:flex;align-items:center;justify-content:center;min-height:60vh;cursor:pointer;position:relative;}
 #preview img{width:100%;height:100%;object-fit:contain;animation:fadeIn .35s ease;}
 #preview::after{content:"Click to play";position:absolute;bottom:.6rem;right:.8rem;font-size:.8rem;
@@ -87,7 +91,7 @@ function renderNormal(){
   g.onclick=()=>{onceMode=false;load('/selectVideos/');};          // Generate → select
   m.onclick=()=>{                                         // Cluster
        const url=selectedIds?`/make_distribution/?video_ids=${selectedIds}`:'/make_distribution/';
-       api(url).then(j=>alert(j.message||j.error));      // 完了通知
+       api(url).then(j=>alert(j.message||j.error));      // finished
   };
   s.onclick=()=>show(selectedIds);
   f.onclick=()=>load('/showDirectory/');
@@ -115,7 +119,7 @@ function attachDetect(){
   form.onsubmit=async e=>{
     e.preventDefault();
     const id=form.video_id?.value;
-    if(!id){alert('Select video');return;}
+    if(!id){alert('Select a video');return;}
     const j=await api(`/bboxDetect/?video_id=${id}`);
     if(j.error){alert(j.error);return;}
     document.getElementById('detect-result').innerHTML=
@@ -161,7 +165,7 @@ function show(ids=null){
   });
 }
 
-/*── global form submit ─*/
+/*── global form submit (upload & select videos) ─*/
 area.addEventListener('submit',async e=>{
   if(e.target.id==='upload-form'){
     e.preventDefault();
@@ -171,7 +175,7 @@ area.addEventListener('submit',async e=>{
   if(e.target.id==='video-select-form'){
     e.preventDefault();
     const ids=[...e.target.querySelectorAll('input[name="video_ids"]:checked')].map(cb=>cb.value);
-    if(!ids.length){alert('Select');return;}
+    if(!ids.length){alert('Select at least one video');return;}
     selectedIds=ids.join(',');
     const g=await api(`/generateData/?video_ids=${selectedIds}`);
     alert(g.message||g.error);
@@ -185,3 +189,4 @@ area.addEventListener('submit',async e=>{
 </script>
 </body>
 </html>
+<!-- <<< no06/templates/no06/index.html <<< -->
