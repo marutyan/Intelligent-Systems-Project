@@ -1,4 +1,4 @@
-<!-- >>> no06/templates/no06/upload_form.html (full-width UI) >>> -->
+<!-- >>> no06/templates/no06/upload_form.html (full-width UI + fixed link) >>> -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -14,8 +14,7 @@
 body{margin:0;font-family:"Inter",system-ui,sans-serif;background:var(--bg);color:#333;}
 h1{font-size:1.3rem;margin:1.2rem 0 .8rem 0;padding-left:.2rem;}
 
-section.card{width:100%;padding:1.6rem 2.4rem;background:var(--card);
-  border-radius:0;box-shadow:none;}         /* 横幅100%, 角丸/影は不要なら0 */
+section.card{width:100%;padding:1.6rem 2.4rem;background:var(--card);}
 
 label{display:inline-block;width:72px;margin-right:.4rem;}
 input[type="text"]{width:320px;padding:.35rem .5rem;border:1px solid #c9d3e1;border-radius:6px;}
@@ -69,7 +68,8 @@ button.del-btn:hover{background:var(--red-dark);}
         <td>{{ v.id }}</td>
         <td>{{ v.name }}</td>
         <td>
-          <a class="video-link" href="/getVideo/?path={{ v.file }}">
+          <!-- ★ URL タグで get_video へ -->
+          <a class="video-link" href="{% url 'no06:get_video' %}?path={{ v.file }}">
             {{ v.file|cut:'no06/media/videos/' }}
           </a>
         </td>
@@ -106,4 +106,4 @@ document.getElementById('upload-form').onsubmit = async (e)=>{
 </script>
 </body>
 </html>
-<!-- <<< no06/templates/no06/upload_form.html (full-width UI) <<< -->
+<!-- <<< no06/templates/no06/upload_form.html (full-width UI + fixed link) <<< -->
