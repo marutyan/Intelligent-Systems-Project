@@ -1,41 +1,96 @@
-<form id="upload-form" action="/upload/" method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-  <p><label>タイトル:</label>
-     <input type="text" name="name" maxlength="255" placeholder="例: movie1.mp4"></p>
+<!-- >>> no06/templates/no06/upload_form.html (full-width UI + fixed link) >>> -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Video Upload</title>
 
-  <p><label>動画ファイル:</label>
-     <input type="file" name="video_file" accept="video/*" required></p>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#0b7ad2; --blue-dark:#075aa3; --red:#d43c3c; --red-dark:#ac2121;
+  --bg:#f7f9fc;   --card:#fff;        --radius:10px;  --shadow:0 2px 8px rgba(0,0,0,.06);
+}
+body{margin:0;font-family:"Inter",system-ui,sans-serif;background:var(--bg);color:#333;}
+h1{font-size:1.3rem;margin:1.2rem 0 .8rem 0;padding-left:.2rem;}
 
-  <button type="submit">アップロード</button>
-</form>
+section.card{width:100%;padding:1.6rem 2.4rem;background:var(--card);}
 
-<hr>
+label{display:inline-block;width:72px;margin-right:.4rem;}
+input[type="text"]{width:320px;padding:.35rem .5rem;border:1px solid #c9d3e1;border-radius:6px;}
+input[type="file"]{padding:.35rem .5rem;}
+button.upload-btn{margin-top:.8rem;padding:.5rem 1.4rem;border:none;border-radius:6px;
+  background:var(--blue);color:#fff;font-weight:500;cursor:pointer;transition:.15s;}
+button.upload-btn:hover{background:var(--blue-dark);}
 
-<h3>アップロード済み動画一覧</h3>
-<table>
-  <thead>
-    <tr>
-      <th>ID</th><th>タイトル</th><th>ファイル</th><th>アップロード日時</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for v in videos %}
-    <tr>
-      <td>{{ v.id }}</td>
-      <td>{{ v.name }}</td>
-      <td>
-        <!-- ★ ここを getVideo に -->
-        <a href="/getVideo/?path={{ v.file }}">{{ v.file|cut:'no06/media/videos/' }}</a>
-      </td>
-      <td>{{ v.uploaded|date:"Y-m-d H:i:s" }}</td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="4">まだ動画はありません。</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+table.upload-list{width:100%;border-collapse:collapse;margin-top:1.2rem;font-size:.9rem;}
+table.upload-list th,table.upload-list td{padding:.55rem .6rem;border:1px solid #e1e5ea;text-align:left;}
+table.upload-list th{background:#f2f5f9;font-weight:600;}
+table.upload-list td:nth-child(1){width:60px;text-align:center;}
+table.upload-list td:nth-child(4){white-space:nowrap;}
+table.upload-list td:nth-child(5){width:90px;text-align:center;}
+
+a.video-link{color:var(--blue);text-decoration:none;}
+a.video-link:hover{text-decoration:underline;}
+
+button.del-btn{padding:.28rem .9rem;border:none;border-radius:6px;background:var(--red);color:#fff;
+  font-size:.85rem;cursor:pointer;transition:.15s;}
+button.del-btn:hover{background:var(--red-dark);}
+</style>
+</head>
+<body>
+
+<section class="card">
+  <h1>動画をアップロード</h1>
+  <form id="upload-form" action="/upload/" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <p>
+      <label>タイトル:</label>
+      <input type="text" name="name" maxlength="255" placeholder="例: movie1.mp4">
+    </p>
+    <p>
+      <label>動画ファイル:</label>
+      <input type="file" name="video_file" accept="video/*" required>
+    </p>
+    <button class="upload-btn" type="submit">アップロード</button>
+  </form>
+
+  <h2 style="font-size:1.1rem;margin:1.6rem 0 .6rem;">アップロード済み動画一覧</h2>
+  <table class="upload-list">
+    <thead>
+      <tr>
+        <th>ID</th><th>タイトル</th><th>ファイル</th><th>日時</th><th>削除</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in videos %}
+      <tr>
+        <td>{{ v.id }}</td>
+        <td>{{ v.name }}</td>
+        <td>
+          <!-- ★ URL タグで get_video へ -->
+          <a class="video-link" href="{% url 'no06:get_video' %}?path={{ v.file }}">
+            {{ v.file|cut:'no06/media/videos/' }}
+          </a>
+        </td>
+        <td>{{ v.uploaded|date:"Y-m-d H:i:s" }}</td>
+        <td>
+          <form action="{% url 'no06:delete_video' v.id %}" method="post" style="margin:0;">
+            {% csrf_token %}
+            <button class="del-btn" type="submit"
+                    onclick="return confirm('本当に削除しますか？');">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" style="text-align:center;">まだ動画はありません。</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
 
 <script>
+/* -------- Ajax アップロード -------- */
 document.getElementById('upload-form').onsubmit = async (e)=>{
   e.preventDefault();
   const fd=new FormData(e.target);
@@ -46,8 +101,9 @@ document.getElementById('upload-form').onsubmit = async (e)=>{
   });
   const j=await res.json();
   alert(j.message||j.error);
-  fetch('/upload/').then(r=>r.text()).then(html=>{
-      document.getElementById('content-area').innerHTML=html;
-  });
+  location.reload();
 };
 </script>
+</body>
+</html>
+<!-- <<< no06/templates/no06/upload_form.html (full-width UI + fixed link) <<< -->
