@@ -1,9 +1,9 @@
-<!-- >>> no06/templates/no06/upload_form.html (full-width UI + fixed link) >>> -->
+<!-- >>> no06/templates/no06/upload_form.html (English UI + modal) >>> -->
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Video Upload</title>
+<title>Upload Videos</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -30,36 +30,46 @@ table.upload-list td:nth-child(1){width:60px;text-align:center;}
 table.upload-list td:nth-child(4){white-space:nowrap;}
 table.upload-list td:nth-child(5){width:90px;text-align:center;}
 
-a.video-link{color:var(--blue);text-decoration:none;}
+a.video-link{color:var(--blue);text-decoration:none;cursor:pointer;}
 a.video-link:hover{text-decoration:underline;}
 
 button.del-btn{padding:.28rem .9rem;border:none;border-radius:6px;background:var(--red);color:#fff;
   font-size:.85rem;cursor:pointer;transition:.15s;}
 button.del-btn:hover{background:var(--red-dark);}
+
+/* ── Modal ─────────────────────────── */
+#video-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);
+  backdrop-filter:blur(2px);z-index:1000;align-items:center;justify-content:center;}
+#video-box{position:relative;width:90%;max-width:880px;background:#000;border-radius:var(--radius);
+  box-shadow:0 6px 24px rgba(0,0,0,.5);}
+#video-box video{width:100%;height:auto;border-radius:var(--radius);}
+#video-close{position:absolute;top:-32px;right:0;font-size:1.6rem;color:#fff;cursor:pointer;
+  user-select:none;}
+#video-close:hover{color:#ddd;}
 </style>
 </head>
 <body>
 
 <section class="card">
-  <h1>動画をアップロード</h1>
+  <h1>Upload a Video</h1>
   <form id="upload-form" action="/upload/" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <p>
-      <label>タイトル:</label>
-      <input type="text" name="name" maxlength="255" placeholder="例: movie1.mp4">
+      <label>Title:</label>
+      <input type="text" name="name" maxlength="255" placeholder="e.g. movie1.mp4">
     </p>
     <p>
-      <label>動画ファイル:</label>
+      <label>File:</label>
       <input type="file" name="video_file" accept="video/*" required>
     </p>
-    <button class="upload-btn" type="submit">アップロード</button>
+    <button class="upload-btn" type="submit">Upload</button>
   </form>
 
-  <h2 style="font-size:1.1rem;margin:1.6rem 0 .6rem;">アップロード済み動画一覧</h2>
+  <h2 style="font-size:1.1rem;margin:1.6rem 0 .6rem;">Uploaded Videos</h2>
   <table class="upload-list">
     <thead>
       <tr>
-        <th>ID</th><th>タイトル</th><th>ファイル</th><th>日時</th><th>削除</th>
+        <th>ID</th><th>Title</th><th>File</th><th>Date</th><th>Delete</th>
       </tr>
     </thead>
     <tbody>
@@ -68,29 +78,36 @@ button.del-btn:hover{background:var(--red-dark);}
         <td>{{ v.id }}</td>
         <td>{{ v.name }}</td>
         <td>
-          <!-- ★ URL タグで get_video へ -->
-          <a class="video-link" href="{% url 'no06:get_video' %}?path={{ v.file }}">
+          <span class="video-link" data-src="{% url 'no06:get_video' %}?path={{ v.file }}">
             {{ v.file|cut:'no06/media/videos/' }}
-          </a>
+          </span>
         </td>
         <td>{{ v.uploaded|date:"Y-m-d H:i:s" }}</td>
         <td>
           <form action="{% url 'no06:delete_video' v.id %}" method="post" style="margin:0;">
             {% csrf_token %}
             <button class="del-btn" type="submit"
-                    onclick="return confirm('本当に削除しますか？');">Delete</button>
+                    onclick="return confirm('Are you sure?');">Delete</button>
           </form>
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="5" style="text-align:center;">まだ動画はありません。</td></tr>
+      <tr><td colspan="5" style="text-align:center;">No videos yet.</td></tr>
       {% endfor %}
     </tbody>
   </table>
 </section>
 
+<!-- Modal -->
+<div id="video-modal">
+  <div id="video-box">
+    <span id="video-close">&times;</span>
+    <video id="modal-video" controls></video>
+  </div>
+</div>
+
 <script>
-/* -------- Ajax アップロード -------- */
+/* Ajax upload */
 document.getElementById('upload-form').onsubmit = async (e)=>{
   e.preventDefault();
   const fd=new FormData(e.target);
@@ -103,7 +120,22 @@ document.getElementById('upload-form').onsubmit = async (e)=>{
   alert(j.message||j.error);
   location.reload();
 };
+
+/* modal playback */
+const modal=document.getElementById('video-modal'),
+      modalV=document.getElementById('modal-video'),
+      closeBt=document.getElementById('video-close');
+
+document.addEventListener('click',e=>{
+  const link=e.target.closest('.video-link');
+  if(!link) return;
+  modalV.src=link.dataset.src;
+  modal.style.display='flex';
+  modalV.play();
+});
+closeBt.onclick=()=>{modalV.pause();modal.style.display='none';};
+modal.onclick=e=>{if(e.target===modal){modalV.pause();modal.style.display='none';}};
 </script>
 </body>
 </html>
-<!-- <<< no06/templates/no06/upload_form.html (full-width UI + fixed link) <<< -->
+<!-- <<< no06/templates/no06/upload_form.html <<< -->

@@ -31,28 +31,21 @@ body.extra-mode button.nav-btn{color:var(--red);}
 button.nav-btn:hover{transform:translateY(-2px);box-shadow:0 6px 12px rgba(0,0,0,.12);}
 body.extra-mode button.nav-btn:hover{color:var(--red-dark);}
 
-main{flex:1 1 auto;margin:1rem 1rem 1.4rem;padding:1.4rem;background:var(--card);
-  border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;
-  overflow:auto;font-size:.9rem;}
-#dist-wrap{flex:1 1 auto;display:flex;gap:1.3rem;flex-wrap:wrap;height:100%;}
-/* 左列（動画 + 3D グラフ）を画面幅 50% 固定に */
-#left-col{flex:0 0 50%;min-width:450px;display:flex;flex-direction:column;min-height:0;}
+main{flex:1 1 auto;margin:0;padding:0;background:var(--card);display:flex;flex-direction:column;overflow:auto;}
+
+#dist-wrap{flex:1 1 auto;display:flex;gap:1.3rem;flex-wrap:wrap;height:100%;padding:1.4rem;}
+#left-col{flex:0 0 50%;min-width:350px;display:flex;flex-direction:column;min-height:0;} /* ← 50 % 幅保証 */
+#preview {flex:1 1 0;min-width:350px;border:1px solid #e3e8ee;border-radius:var(--radius);
+  background:#f0f6ff;display:flex;align-items:center;justify-content:center;min-height:60vh;
+  cursor:pointer;position:relative;}
 #plot{flex:1 1 auto;min-height:60vh;}
-/* プレビュー領域は残り 50% */
-#preview{flex:1 1 45%;border:1px solid #e3e8ee;border-radius:var(--radius);background:#f0f6ff;
-  display:flex;align-items:center;justify-content:center;min-height:60vh;cursor:pointer;position:relative;}
-#preview img{width:100%;height:100%;object-fit:contain;animation:fadeIn .35s ease;}
-#preview::after{content:"Click to play";position:absolute;bottom:.6rem;right:.8rem;font-size:.8rem;
-  background:rgba(255,255,255,.85);padding:.1rem .5rem;border-radius:8px;color:#555;}
 
 ul.simple-list{list-style:none;padding:0;margin:0;border:1px solid #e3e8ee;border-radius:var(--radius);overflow:hidden;}
 ul.simple-list li{display:flex;align-items:center;gap:.55rem;padding:.55rem .85rem;font-size:.83rem;background:#fff;border-bottom:1px solid #e9edf3;cursor:pointer;}
 ul.simple-list li:last-child{border-bottom:none;}
 ul.simple-list li:hover{background:#f2f6fb;}
 button.play-btn{margin-left:auto;border:none;background:none;font-size:1.05rem;color:var(--blue);cursor:pointer;transition:.15s;}
-body.extra-mode button.play-btn{color:var(--red);}
 button.play-btn:hover{color:var(--blue-dark);}
-body.extra-mode button.play-btn:hover{color:var(--red-dark);}
 
 #modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(2px);
   align-items:center;justify-content:center;cursor:zoom-out;z-index:1000;}
@@ -62,7 +55,7 @@ body.extra-mode button.play-btn:hover{color:var(--red-dark);}
 </style>
 </head>
 <body>
-<header><h1>Video Analytics&nbsp;(no06)</h1><nav id="nav"></nav></header>
+<header><h1>Video Analytics (no06)</h1><nav id="nav"></nav></header>
 <main id="area"></main><div id="modal"></div>
 
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
@@ -91,7 +84,7 @@ function renderNormal(){
   g.onclick=()=>{onceMode=false;load('/selectVideos/');};          // Generate → select
   m.onclick=()=>{                                         // Cluster
        const url=selectedIds?`/make_distribution/?video_ids=${selectedIds}`:'/make_distribution/';
-       api(url).then(j=>alert(j.message||j.error));      // finished
+       api(url).then(j=>alert(j.message||j.error));      // complete notice
   };
   s.onclick=()=>show(selectedIds);
   f.onclick=()=>load('/showDirectory/');
@@ -100,7 +93,7 @@ function renderNormal(){
 function renderExtra(){
   navHTML(`<button class="nav-btn" id="b"><i class="ti ti-arrow-back-up"></i>Back</button>
 <button class="nav-btn" id="u2"><i class="ti ti-upload"></i>Upload</button>
-<button class="nav-btn" id="o"><i class="ti ti-rocket"></i>One-Click</button>
+<button class="nav-btn" id="o"><i class="ti ti-rocket"></i>One Click</button>
 <button class="nav-btn" id="d"><i class="ti ti-focus-2"></i>BBox</button>`);
   b.onclick=leaveExtra;u2.onclick=()=>load('/upload/');
   o.onclick=()=>{onceMode=true;load('/selectVideos/');};
@@ -119,7 +112,7 @@ function attachDetect(){
   form.onsubmit=async e=>{
     e.preventDefault();
     const id=form.video_id?.value;
-    if(!id){alert('Select a video');return;}
+    if(!id){alert('Select a video.');return;}
     const j=await api(`/bboxDetect/?video_id=${id}`);
     if(j.error){alert(j.error);return;}
     document.getElementById('detect-result').innerHTML=
@@ -165,7 +158,7 @@ function show(ids=null){
   });
 }
 
-/*── global form submit (upload & select videos) ─*/
+/*── global form submit ─*/
 area.addEventListener('submit',async e=>{
   if(e.target.id==='upload-form'){
     e.preventDefault();
@@ -175,7 +168,7 @@ area.addEventListener('submit',async e=>{
   if(e.target.id==='video-select-form'){
     e.preventDefault();
     const ids=[...e.target.querySelectorAll('input[name="video_ids"]:checked')].map(cb=>cb.value);
-    if(!ids.length){alert('Select at least one video');return;}
+    if(!ids.length){alert('Select videos first.');return;}
     selectedIds=ids.join(',');
     const g=await api(`/generateData/?video_ids=${selectedIds}`);
     alert(g.message||g.error);

@@ -1,17 +1,41 @@
-<h2 style="margin-bottom:1rem;">BBox Detection – Select a Video</h2>
+<!-- >>> no06/templates/no06/select_detect.html >>> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BBox Detection</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#0b7ad2;--blue-dark:#075aa3;--bg:#f7f9fc;--card:#fff;--radius:10px;--shadow:0 2px 8px rgba(0,0,0,.06);}
+body{margin:0;font-family:"Inter",system-ui,sans-serif;background:var(--bg);}
+section.card{max-width:960px;margin:2rem auto;background:var(--card);padding:1.6rem 2rem;
+  border-radius:var(--radius);box-shadow:var(--shadow);}
+h1{font-size:1.2rem;margin-bottom:1rem;}
+button.run-btn{margin-top:1rem;padding:.55rem 1.2rem;border:none;border-radius:6px;background:var(--blue);
+  color:#fff;font-weight:500;cursor:pointer;transition:.15s;}
+button.run-btn:hover{background:var(--blue-dark);}
+</style>
+</head>
+<body>
+<section class="card">
+  <h1>BBox Detection – Select a video</h1>
 
-<form id="detect-select-form">
-  {% for v in videos %}
-    <p>
-      <label>
-        <input type="radio" name="video_id" value="{{ v.id }}">
-        [{{ v.id }}] {{ v.name }}
-      </label>
-    </p>
-  {% empty %}
-    <p>No videos.</p>
-  {% endfor %}
-  <button type="submit" style="padding:.5rem 1rem;">Run BBox</button>
-</form>
+  <form id="detect-select-form">
+    {% for v in videos %}
+      <p>
+        <label>
+          <input type="radio" name="video_id" value="{{ v.id }}"> 
+          [{{ v.id }}] {{ v.name }}
+        </label>
+      </p>
+    {% empty %}
+      <p>No videos.</p>
+    {% endfor %}
+    <button class="run-btn" type="submit">Run BBox</button>
+  </form>
 
-<div id="detect-result" style="margin-top:1.5rem;"></div>
+  <div id="detect-result" style="margin-top:1.5rem;"></div>
+</section>
+</body>
+</html>
+<!-- <<< no06/templates/no06/select_detect.html <<< -->
