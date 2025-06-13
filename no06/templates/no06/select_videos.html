@@ -1,4 +1,4 @@
-<!-- >>> no06/templates/no06/select_videos.html >>> -->
+<!-- >>> no06/templates/no06/select_videos.html (full-width) >>> -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,8 +8,7 @@
 <style>
 :root{--blue:#0b7ad2;--blue-dark:#075aa3;--bg:#f7f9fc;--card:#fff;--radius:10px;--shadow:0 2px 8px rgba(0,0,0,.06);}
 body{margin:0;font-family:"Inter",system-ui,sans-serif;background:var(--bg);}
-section.card{max-width:960px;margin:2rem auto;background:var(--card);padding:1.6rem 2rem;
-  border-radius:var(--radius);box-shadow:var(--shadow);}
+section.card{width:100%;padding:1.6rem 2.4rem;background:var(--card);}
 h1{font-size:1.2rem;margin-bottom:1rem;}
 ul.simple-list{list-style:none;padding-left:0;margin:0;border:1px solid #e1e5ea;border-radius:var(--radius);}
 ul.simple-list li{padding:.55rem .85rem;border-bottom:1px solid #e1e5ea;font-size:.9rem;}
@@ -28,7 +27,7 @@ button.gen-btn:hover{background:var(--blue-dark);}
       {% for v in videos %}
       <li>
         <label>
-          <input type="checkbox" name="video_ids" value="{{ v.id }}"> 
+          <input type="checkbox" name="video_ids" value="{{ v.id }}">
           {{ v.name }} (ID:{{ v.id }})
         </label>
       </li>

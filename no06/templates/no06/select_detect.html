@@ -1,19 +1,32 @@
-<!-- >>> no06/templates/no06/select_detect.html >>> -->
+<!-- >>> no06/templates/no06/select_detect.html (enhanced full-width) >>> -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>BBox Detection</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--blue:#0b7ad2;--blue-dark:#075aa3;--bg:#f7f9fc;--card:#fff;--radius:10px;--shadow:0 2px 8px rgba(0,0,0,.06);}
-body{margin:0;font-family:"Inter",system-ui,sans-serif;background:var(--bg);}
-section.card{max-width:960px;margin:2rem auto;background:var(--card);padding:1.6rem 2rem;
-  border-radius:var(--radius);box-shadow:var(--shadow);}
+:root{
+  --blue:#0b7ad2; --blue-dark:#075aa3; --bg:#f7f9fc; --card:#fff;
+  --radius:10px;  --shadow:0 2px 8px rgba(0,0,0,.06);
+}
+body{margin:0;font-family:"Inter",system-ui,sans-serif;background:var(--bg);color:#333;}
+section.card{width:100%;padding:1.6rem 2.4rem;background:var(--card);}
+
 h1{font-size:1.2rem;margin-bottom:1rem;}
-button.run-btn{margin-top:1rem;padding:.55rem 1.2rem;border:none;border-radius:6px;background:var(--blue);
-  color:#fff;font-weight:500;cursor:pointer;transition:.15s;}
+p{margin:.4rem 0;}
+label{cursor:pointer;}
+
+button.run-btn{
+  margin-top:1rem;padding:.55rem 1.2rem;border:none;border-radius:6px;
+  background:var(--blue);color:#fff;font-weight:500;cursor:pointer;transition:.15s;
+}
 button.run-btn:hover{background:var(--blue-dark);}
+
+/* preview area */
+#detect-result{margin-top:1.8rem;}
+#detect-result video{width:100%;max-height:70vh;border:1px solid #e1e5ea;border-radius:var(--radius);box-shadow:var(--shadow);}
 </style>
 </head>
 <body>
@@ -24,7 +37,7 @@ button.run-btn:hover{background:var(--blue-dark);}
     {% for v in videos %}
       <p>
         <label>
-          <input type="radio" name="video_id" value="{{ v.id }}"> 
+          <input type="radio" name="video_id" value="{{ v.id }}">
           [{{ v.id }}] {{ v.name }}
         </label>
       </p>
@@ -34,8 +47,26 @@ button.run-btn:hover{background:var(--blue-dark);}
     <button class="run-btn" type="submit">Run BBox</button>
   </form>
 
-  <div id="detect-result" style="margin-top:1.5rem;"></div>
+  <div id="detect-result"></div>
 </section>
+
+<script>
+/* Ajax run */
+document.getElementById('detect-select-form').onsubmit = async (e)=>{
+  e.preventDefault();
+  const id=e.target.video_id?.value;
+  if(!id){alert('Select a video first.');return;}
+  const res=await fetch(`/bboxDetect/?video_id=${id}`);
+  const j = await res.json();
+  if(j.error){alert(j.error);return;}
+
+  /* render preview */
+  document.getElementById('detect-result').innerHTML =
+    `<video controls autoplay>
+       <source src="/getDetVideo/?video_id=${id}" type="video/mp4">
+     </video>`;
+};
+</script>
 </body>
 </html>
 <!-- <<< no06/templates/no06/select_detect.html <<< -->
