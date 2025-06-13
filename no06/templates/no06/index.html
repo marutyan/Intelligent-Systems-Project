@@ -1,4 +1,4 @@
-<!-- >>> no06/templates/no06/index.html >>> -->
+<!-- >>> no06/templates/no06/index.html (thumbnail size fix) >>> -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -34,10 +34,11 @@ body.extra-mode button.nav-btn:hover{color:var(--red-dark);}
 main{flex:1 1 auto;margin:0;padding:0;background:var(--card);display:flex;flex-direction:column;overflow:auto;}
 
 #dist-wrap{flex:1 1 auto;display:flex;gap:1.3rem;flex-wrap:wrap;height:100%;padding:1.4rem;}
-#left-col{flex:0 0 50%;min-width:350px;display:flex;flex-direction:column;min-height:0;} /* ← 50 % 幅保証 */
-#preview {flex:1 1 0;min-width:350px;border:1px solid #e3e8ee;border-radius:var(--radius);
+#left-col{flex:0 0 50%;min-width:350px;display:flex;flex-direction:column;min-height:0;}
+#preview{flex:1 1 0;min-width:350px;border:1px solid #e3e8ee;border-radius:var(--radius);
   background:#f0f6ff;display:flex;align-items:center;justify-content:center;min-height:60vh;
   cursor:pointer;position:relative;}
+#preview img{max-width:100%;max-height:100%;object-fit:contain;animation:fadeIn .35s ease;}  /* ← 復活 */
 #plot{flex:1 1 auto;min-height:60vh;}
 
 ul.simple-list{list-style:none;padding:0;margin:0;border:1px solid #e3e8ee;border-radius:var(--radius);overflow:hidden;}
@@ -81,11 +82,9 @@ function renderNormal(){
 <button class="nav-btn" id="f"><i class="ti ti-folder"></i>Files</button>
 <button class="nav-btn" id="x"><i class="ti ti-stars"></i>Extras</button>`);
   u.onclick=()=>load('/upload/');
-  g.onclick=()=>{onceMode=false;load('/selectVideos/');};          // Generate → select
-  m.onclick=()=>{                                         // Cluster
-       const url=selectedIds?`/make_distribution/?video_ids=${selectedIds}`:'/make_distribution/';
-       api(url).then(j=>alert(j.message||j.error));      // complete notice
-  };
+  g.onclick=()=>{onceMode=false;load('/selectVideos/');};
+  m.onclick=()=>{const url=selectedIds?`/make_distribution/?video_ids=${selectedIds}`:'/make_distribution/';
+                 api(url).then(j=>alert(j.message||j.error));};
   s.onclick=()=>show(selectedIds);
   f.onclick=()=>load('/showDirectory/');
   x.onclick=enterExtra;
@@ -182,4 +181,4 @@ area.addEventListener('submit',async e=>{
 </script>
 </body>
 </html>
-<!-- <<< no06/templates/no06/index.html <<< -->
+<!-- <<< no06/templates/no06/index.html (thumbnail size fix) <<< -->
