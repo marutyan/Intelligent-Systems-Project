@@ -1,4 +1,4 @@
-<!-- >>> no06/templates/no06/index.html (thumbnail size fix) >>> -->
+<!-- >>> no06/templates/no06/index.html (graph 65% / preview 33%) >>> -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -34,11 +34,13 @@ body.extra-mode button.nav-btn:hover{color:var(--red-dark);}
 main{flex:1 1 auto;margin:0;padding:0;background:var(--card);display:flex;flex-direction:column;overflow:auto;}
 
 #dist-wrap{flex:1 1 auto;display:flex;gap:1.3rem;flex-wrap:wrap;height:100%;padding:1.4rem;}
-#left-col{flex:0 0 50%;min-width:350px;display:flex;flex-direction:column;min-height:0;}
-#preview{flex:1 1 0;min-width:350px;border:1px solid #e3e8ee;border-radius:var(--radius);
+/* ★ 65% : 33% レイアウト（gap は残り 2% 弱） */
+#left-col{flex:0 0 65%;min-width:420px;display:flex;flex-direction:column;min-height:0;}
+#preview{flex:0 0 33%;min-width:320px;border:1px solid #e3e8ee;border-radius:var(--radius);
   background:#f0f6ff;display:flex;align-items:center;justify-content:center;min-height:60vh;
-  cursor:pointer;position:relative;}
-#preview img{max-width:100%;max-height:100%;object-fit:contain;animation:fadeIn .35s ease;}  /* ← 復活 */
+  cursor:pointer;position:relative;padding:0 8px;}
+#preview img{max-width:100%;max-height:100%;object-fit:contain;animation:fadeIn .35s ease;}
+
 #plot{flex:1 1 auto;min-height:60vh;}
 
 ul.simple-list{list-style:none;padding:0;margin:0;border:1px solid #e3e8ee;border-radius:var(--radius);overflow:hidden;}
@@ -146,7 +148,7 @@ function show(ids=null){
       `<li data-id="${v.id}">[${v.id}] ${v.name}<button class="play-btn"><i class="ti ti-player-play"></i></button></li>`));
     ul.onclick=e=>{const li=e.target.closest('[data-id]');if(li) startSlide(li.dataset.id);};
 
-    Plotly.newPlot('plot',fig.data,fig.layout);
+    Plotly.newPlot('plot',fig.data,fig.layout,{displaylogo:false});
     document.getElementById('plot').on('plotly_click',ev=>{
       const [name,,thumb]=ev.points[0].customdata;
       document.getElementById('preview').innerHTML=
@@ -181,4 +183,4 @@ area.addEventListener('submit',async e=>{
 </script>
 </body>
 </html>
-<!-- <<< no06/templates/no06/index.html (thumbnail size fix) <<< -->
+<!-- <<< no06/templates/no06/index.html (graph 65% / preview 33%) <<< -->
