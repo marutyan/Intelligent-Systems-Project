@@ -1,4 +1,4 @@
-<!-- >>> no06/templates/no06/index.html (graph 65% / preview 33%) >>> -->
+<!-- >>> no06/templates/no06/index.html (fixed horizontal layout) >>> -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,10 +31,9 @@ body.extra-mode button.nav-btn{color:var(--red);}
 button.nav-btn:hover{transform:translateY(-2px);box-shadow:0 6px 12px rgba(0,0,0,.12);}
 body.extra-mode button.nav-btn:hover{color:var(--red-dark);}
 
-main{flex:1 1 auto;margin:0;padding:0;background:var(--card);display:flex;flex-direction:column;overflow:auto;}
+main{flex:1 1 auto;margin:0;padding:0;background:var(--card);display:flex;flex-direction:column;overflow:hidden;}
 
-#dist-wrap{flex:1 1 auto;display:flex;gap:1.3rem;flex-wrap:wrap;height:100%;padding:1.4rem;}
-/* ★ 65% : 33% レイアウト（gap は残り 2% 弱） */
+#dist-wrap{height:100%;padding:1.4rem;display:flex;gap:1.3rem;flex-wrap:nowrap;}  /* ← 横並び固定 */
 #left-col{flex:0 0 65%;min-width:420px;display:flex;flex-direction:column;min-height:0;}
 #preview{flex:0 0 33%;min-width:320px;border:1px solid #e3e8ee;border-radius:var(--radius);
   background:#f0f6ff;display:flex;align-items:center;justify-content:center;min-height:60vh;
@@ -43,7 +42,7 @@ main{flex:1 1 auto;margin:0;padding:0;background:var(--card);display:flex;flex-d
 
 #plot{flex:1 1 auto;min-height:60vh;}
 
-ul.simple-list{list-style:none;padding:0;margin:0;border:1px solid #e3e8ee;border-radius:var(--radius);overflow:hidden;}
+ul.simple-list{list-style:none;padding:0;margin:0;border:1px solid #e3e8ee;border-radius:var(--radius);overflow:auto;}
 ul.simple-list li{display:flex;align-items:center;gap:.55rem;padding:.55rem .85rem;font-size:.83rem;background:#fff;border-bottom:1px solid #e9edf3;cursor:pointer;}
 ul.simple-list li:last-child{border-bottom:none;}
 ul.simple-list li:hover{background:#f2f6fb;}
@@ -183,4 +182,4 @@ area.addEventListener('submit',async e=>{
 </script>
 </body>
 </html>
-<!-- <<< no06/templates/no06/index.html (graph 65% / preview 33%) <<< -->
+<!-- <<< no06/templates/no06/index.html (fixed horizontal layout) <<< -->
