@@ -6,6 +6,7 @@
 ![YOLOv8](https://img.shields.io/badge/YOLOv8-pose&nbsp;%7C&nbsp;det-red)
 
 > **no06** converts raw videos into pose-based colour features, clusters them with t-SNE + k-means and offers a smooth, single-page UX for exploration.
+> This is an application created in Intelligent Systems Project 1 at KDIX.
 
 ---
 
