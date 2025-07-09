@@ -24,16 +24,19 @@ declare global {
 }
 
 export default function Home() {
-  const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [status, setStatus] = useState<'ready' | 'listening' | 'processing' | 'speaking'>('ready');
   const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [isMonitoring, setIsMonitoring] = useState(false);
+  const [currentTranscript, setCurrentTranscript] = useState('');
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
+  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const restartTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Web Speech API の初期化
@@ -46,28 +49,97 @@ export default function Home() {
       recognitionRef.current.lang = 'ja-JP';
 
       recognitionRef.current.onstart = () => {
+        console.log('Speech recognition started');
         setStatus('listening');
-        setIsListening(true);
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       recognitionRef.current.onresult = (event: any) => {
-        const transcript = event.results[event.results.length - 1][0].transcript;
-        if (event.results[event.results.length - 1].isFinal) {
-          handleUserInput(transcript);
+        let finalTranscript = '';
+        let interimTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        // 現在の音声入力を表示用に更新
+        setCurrentTranscript(interimTranscript || finalTranscript);
+
+        // 音声が検出されたら無音タイマーをリセット
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+        }
+
+        // 最終的な音声が確定したら処理
+        if (finalTranscript.trim()) {
+          console.log('Final transcript:', finalTranscript);
+          handleUserInput(finalTranscript);
+          setCurrentTranscript('');
+          
+          // 音声処理後、少し待ってから再開
+          if (isMonitoring) {
+            setTimeout(() => {
+              if (recognitionRef.current && isMonitoring) {
+                try {
+                  recognitionRef.current.start();
+                } catch (error) {
+                  console.log('Recognition restart error:', error);
+                }
+              }
+            }, 1000);
+          }
+        } else if (interimTranscript.trim()) {
+          // 音声が続いている間は無音タイマーを設定
+          silenceTimerRef.current = setTimeout(() => {
+            if (interimTranscript.trim()) {
+              console.log('Silence detected, processing interim transcript:', interimTranscript);
+              handleUserInput(interimTranscript);
+              setCurrentTranscript('');
+            }
+          }, 2000); // 2秒間無音で確定
         }
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        setStatus('ready');
-        setIsListening(false);
+        
+        // エラーが発生した場合も監視を続ける
+        if (isMonitoring && event.error !== 'aborted') {
+          restartTimerRef.current = setTimeout(() => {
+            if (recognitionRef.current && isMonitoring) {
+              try {
+                recognitionRef.current.start();
+              } catch (error) {
+                console.log('Recognition restart after error:', error);
+              }
+            }
+          }, 1000);
+        }
       };
 
       recognitionRef.current.onend = () => {
-        setIsListening(false);
-        if (status === 'listening') {
+        console.log('Speech recognition ended');
+        setCurrentTranscript('');
+        
+        // 監視モードの場合は自動的に再開
+        if (isMonitoring && status !== 'processing' && status !== 'speaking') {
+          setStatus('ready');
+          restartTimerRef.current = setTimeout(() => {
+            if (recognitionRef.current && isMonitoring) {
+              try {
+                recognitionRef.current.start();
+              } catch (error) {
+                console.log('Recognition restart error:', error);
+              }
+            }
+          }, 500);
+        } else {
           setStatus('ready');
         }
       };
@@ -79,6 +151,12 @@ export default function Home() {
     }
 
     return () => {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+      }
+      if (restartTimerRef.current) {
+        clearTimeout(restartTimerRef.current);
+      }
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
@@ -86,10 +164,15 @@ export default function Home() {
         synthRef.current.cancel();
       }
     };
-  }, []);
+  }, [isMonitoring, status]);
 
   const handleUserInput = async (transcript: string) => {
     if (!transcript.trim()) return;
+
+    // 音声認識を一時停止
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -163,6 +246,19 @@ export default function Home() {
           setStatus('ready');
           setIsProcessing(false);
           setProgress(0);
+          
+          // 読み上げ完了後、監視モードなら音声認識を再開
+          if (isMonitoring) {
+            setTimeout(() => {
+              if (recognitionRef.current && isMonitoring) {
+                try {
+                  recognitionRef.current.start();
+                } catch (error) {
+                  console.log('Recognition restart after speech:', error);
+                }
+              }
+            }, 1000);
+          }
         };
         
         synthRef.current.speak(utterance);
@@ -170,6 +266,19 @@ export default function Home() {
         setStatus('ready');
         setIsProcessing(false);
         setProgress(0);
+        
+        // 読み上げなしの場合も監視モードなら音声認識を再開
+        if (isMonitoring) {
+          setTimeout(() => {
+            if (recognitionRef.current && isMonitoring) {
+              try {
+                recognitionRef.current.start();
+              } catch (error) {
+                console.log('Recognition restart after processing:', error);
+              }
+            }
+          }, 1000);
+        }
       }
 
     } catch (error) {
@@ -184,14 +293,46 @@ export default function Home() {
       setStatus('ready');
       setIsProcessing(false);
       setProgress(0);
+      
+      // エラー後も監視モードなら音声認識を再開
+      if (isMonitoring) {
+        setTimeout(() => {
+          if (recognitionRef.current && isMonitoring) {
+            try {
+              recognitionRef.current.start();
+            } catch (error) {
+              console.log('Recognition restart after error:', error);
+            }
+          }
+        }, 1000);
+      }
     }
   };
 
-  const toggleListening = () => {
-    if (isListening) {
-      recognitionRef.current?.stop();
+  const toggleMonitoring = () => {
+    if (isMonitoring) {
+      // 監視停止
+      setIsMonitoring(false);
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+      }
+      if (restartTimerRef.current) {
+        clearTimeout(restartTimerRef.current);
+      }
+      setStatus('ready');
     } else {
-      recognitionRef.current?.start();
+      // 監視開始
+      setIsMonitoring(true);
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.start();
+        } catch (error) {
+          console.log('Recognition start error:', error);
+        }
+      }
     }
   };
 
@@ -212,11 +353,14 @@ export default function Home() {
   };
 
   const getStatusText = () => {
+    if (currentTranscript) {
+      return `聞き取り中: "${currentTranscript}"`;
+    }
     switch (status) {
-      case 'listening': return '音声を聞いています...';
+      case 'listening': return isMonitoring ? '音声を待機しています...' : '音声を聞いています...';
       case 'processing': return 'AI が考えています...';
       case 'speaking': return '応答中...';
-      default: return 'マイクボタンを押して話しかけてください';
+      default: return isMonitoring ? '音声を監視中（話しかけてください）' : 'マイクボタンを押して音声監視を開始してください';
     }
   };
 
@@ -258,16 +402,16 @@ export default function Home() {
           <CardContent className="pt-6">
             <div className="flex justify-center space-x-4">
               <Button
-                onClick={toggleListening}
+                onClick={toggleMonitoring}
                 size="lg"
                 className={`w-16 h-16 rounded-full ${
-                  isListening 
+                  isMonitoring 
                     ? 'bg-red-500 hover:bg-red-600' 
                     : 'bg-green-500 hover:bg-green-600'
                 }`}
                 disabled={isProcessing}
               >
-                {isListening ? (
+                {isMonitoring ? (
                   <MicOff className="w-6 h-6" />
                 ) : (
                   <Mic className="w-6 h-6" />
@@ -287,7 +431,7 @@ export default function Home() {
               </Button>
             </div>
             <div className="text-center mt-4 text-sm text-slate-600">
-              {isListening ? '録音を停止するにはマイクボタンを押してください' : 
+              {isMonitoring ? '音声認識を停止するにはマイクボタンを押してください' : 
                '音声入力を開始するにはマイクボタンを押してください'}
             </div>
           </CardContent>
